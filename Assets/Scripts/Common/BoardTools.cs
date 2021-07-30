@@ -12,6 +12,10 @@ namespace Assets.Scripts.Common {
             return point;
         }
 
+        public static bool IsRedChess(byte chessID) {
+            return (1 != (chessID & 0x10));
+        }
+
         public static bool IsInBoard(Vector2Int point) {
             if (point.x < -4 || 4 < point.x) {
                 return false;
@@ -22,12 +26,16 @@ namespace Assets.Scripts.Common {
             return true;
         }
 
-        public static int GetPointKey(Vector2Int point) {
-            return (point.x + 4) * 100 + (point.y + 4);
+        public static ChessType GetChessType(byte chessID) {
+            return (ChessType)(((chessID & 0xFF) + 1) >> 1);
         }
 
-        public static Vector2Int GetPointByKey(int pointKey) {
-            return new Vector2Int((pointKey / 100) - 4, (pointKey % 100) - 4);
+        public static byte GetPointKey(Vector2Byte point) {
+            return (byte)((point.x + 4) * 20 + (point.y + 4));
+        }
+
+        public static Vector2Byte GetPointByKey(byte pointKey) {
+            return new Vector2Byte((byte)((pointKey / 20) - 4), (byte)((pointKey % 20) - 4));
         }
     }
 }
