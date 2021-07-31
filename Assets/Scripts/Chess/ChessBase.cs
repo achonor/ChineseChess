@@ -35,54 +35,14 @@ public class ChessBase : BaseBehaviour {
     /// <summary>
     /// 当前位置
     /// </summary>
-    public Vector2Int PosPoint {
+    public Vector2Byte PosPoint {
         get;
         protected set;
     }
 
     protected override void Start() {
         base.Start();
-        SetPosPint(PosPoint);
-    }
-
-
-    /// <summary>
-    /// 棋子评分
-    /// </summary>
-    /// <returns></returns>
-    public virtual int GetScore() {
-        return 0;
-    }
-
-    /// <summary>
-    /// 棋子能到达的点
-    /// </summary>
-    /// <returns></returns>
-    public virtual List<Vector2Int> GetMovePoints() {
-        return new List<Vector2Int>();
-    }
-
-    protected bool IsCanStay(Vector2Int point) {
-        if (!BoardTools.IsInBoard(point)) {
-            return false;
-        }
-        ChessBase chess = Board.Instance.GetChessByPoint(point);
-        if (null != chess && chess.IsRedChess == IsRedChess) {
-            return false;
-        }
-        return true;
-    }
-
-    /// <summary>
-    /// 是否过河
-    /// </summary>
-    /// <returns></returns>
-    public bool IsPassRiver() {
-        if (IsRedChess) {
-            return 0 < PosPoint.y;
-        } else {
-            return PosPoint.y < 1;
-        }
+        SetPosPoint(PosPoint);
     }
 
 
@@ -92,8 +52,8 @@ public class ChessBase : BaseBehaviour {
     }
 
 
-    public void SetPosPint(Vector2Int point) {
+    public void SetPosPoint(Vector2Byte point) {
         PosPoint = point;
-        transform.position = BoardTools.PointToWorldPos(point);
+        transform.localPosition = BoardTools.PointToPosition(point);
     }
 }

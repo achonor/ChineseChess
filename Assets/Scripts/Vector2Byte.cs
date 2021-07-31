@@ -6,16 +6,26 @@ using System.Threading.Tasks;
 
 namespace Assets.Scripts {
     public class Vector2Byte {
-        public byte x;
-        public byte y;
+        public sbyte x;
+        public sbyte y;
 
-        public Vector2Byte(byte _x, byte _y) {
+        public Vector2Byte(sbyte _x, sbyte _y) {
             x = _x;
             y = _y;
         }
 
+        public Vector2Byte(int _x, int _y) {
+            x = (sbyte)_x;
+            y = (sbyte)_y;
+        }
+
+
+        public bool IsEqules(Vector2Byte vector) {
+            return x == vector.x && y == vector.y;
+        }
+
         public static Vector2Byte operator+ (Vector2Byte a, Vector2Byte b) {
-            return new Vector2Byte((byte)(a.x + b.x), (byte)(a.y + b.y));
+            return new Vector2Byte((sbyte)(a.x + b.x), (sbyte)(a.y + b.y));
         }
     }
 }

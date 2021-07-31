@@ -8,15 +8,15 @@ using UnityEngine;
 namespace Assets.Scripts.Common {
     public static class BoardTools {
 
-        public static Vector2 PointToWorldPos(Vector2Int point) {
-            return point;
+        public static Vector2 PointToPosition(Vector2Byte point) {
+            return new Vector2(point.x, point.y);
         }
 
-        public static bool IsRedChess(byte chessID) {
-            return (1 != (chessID & 0x10));
+        public static bool IsRedChess(sbyte chessID) {
+            return (0 == (chessID & 0x10));
         }
 
-        public static bool IsInBoard(Vector2Int point) {
+        public static bool IsInBoard(Vector2Byte point) {
             if (point.x < -4 || 4 < point.x) {
                 return false;
             }
@@ -26,16 +26,19 @@ namespace Assets.Scripts.Common {
             return true;
         }
 
-        public static ChessType GetChessType(byte chessID) {
-            return (ChessType)(((chessID & 0xFF) + 1) >> 1);
+        public static ChessType GetChessType(sbyte chessID) {
+            if (0x0B <= (chessID & 0x0F)) {
+                return ChessType.Bing;
+            }
+            return (ChessType)(((chessID & 0x0F) + 1) >> 1);
         }
 
-        public static byte GetPointKey(Vector2Byte point) {
-            return (byte)((point.x + 4) * 20 + (point.y + 4));
+        public static sbyte GetPointKey(Vector2Byte point) {
+            return (sbyte)((point.x + 4) * 10 + (point.y + 4));
         }
 
-        public static Vector2Byte GetPointByKey(byte pointKey) {
-            return new Vector2Byte((byte)((pointKey / 20) - 4), (byte)((pointKey % 20) - 4));
+        public static Vector2Byte GetPointByKey(sbyte pointKey) {
+            return new Vector2Byte((sbyte)((pointKey / 10) - 4), (sbyte)((pointKey % 10) - 4));
         }
     }
 }

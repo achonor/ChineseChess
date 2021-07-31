@@ -10,6 +10,6 @@ using UnityEngine;
 public class Chess_0_6_0 : Chess_0_6 {
     protected override void Awake() {
         base.Awake();
-        SetPosPint(new Vector2Int(-4, -1));
+        SetPosPoint(new Vector2Byte(-4, -1));
     }
 }
