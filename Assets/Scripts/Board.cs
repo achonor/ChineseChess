@@ -146,17 +146,7 @@ namespace Assets.Scripts {
             Chart chart = Chart.Clone(mChart);
             chart.MoveChess(chessID, point);
             //判断是否被将军
-            Vector2Byte shuaiPoint = chart.GetChessPoint((sbyte)(isRedChess ? 0 : 16));
-            for (int i = 0; i < 16; i++) {
-                sbyte tempID = (sbyte)(i + (isRedChess ? 16 : 0));
-                List<Vector2Byte> tempPoints = chart.GetMovePoints(tempID);
-                for (int k = 0; k < tempPoints.Count; k++) {
-                    if (shuaiPoint.IsEqules(tempPoints[k])){
-                        return false;
-                    }
-                }
-            }
-            return true;
+            return !chart.IsJiangJun(!isRedChess);
         }
 
         protected void SelectChess(sbyte chessID) {
@@ -197,6 +187,27 @@ namespace Assets.Scripts {
             go.transform.position = BoardTools.PointToPosition(point);
             mNewPointEffect = go;
         }
+
+        protected void AddJiangJunEffect() {
+            GameObject go = PrefabManager.Instance.LoadPrefab("Prefabs/JiangJun");
+            go.SetActive(true);
+            go.transform.parent = mEffectParent;
+            go.transform.position = Vector3.zero;
+            Achonor.Scheduler.AddDelay(0.3f, () => {
+                PrefabManager.Instance.RemovePrefab(go);
+            });
+        }
+
+        protected void AddJueShaEffect() {
+            GameObject go = PrefabManager.Instance.LoadPrefab("Prefabs/JueSha");
+            go.SetActive(true);
+            go.transform.parent = mEffectParent;
+            go.transform.position = Vector3.zero;
+            Achonor.Scheduler.AddDelay(0.8f, () => {
+                PrefabManager.Instance.RemovePrefab(go);
+            });
+        }
+
 
         protected void RemoveMovePointEffects() {
             while (0 < mAllMovePointEffect.Count) {
@@ -240,11 +251,22 @@ namespace Assets.Scripts {
             //移动棋子
             mChart.MoveChess(chessID, point);
             SelectedChessID = -1;
+
+            //判断是否将军
+            bool isRedChess = BoardTools.IsRedChess(chessID);
+            if (mChart.IsJiangJun(isRedChess)) {
+                //将军, 判断是否绝杀
+                if (mChart.IsJueSha(isRedChess)) {
+                    AddJueShaEffect();
+                } else {
+                    AddJiangJunEffect();
+                }
+            }
         }
 
         protected void PlayCantMove(sbyte chessID, Vector2Byte point) {
             ChessBase chess = GetChess(chessID);
-            chess.transform.DOShakePosition(0.5f, 0.01f);
+            chess.transform.DOShakePosition(0.5f, 0.02f);
         }
     }
 }

@@ -171,6 +171,47 @@ namespace Assets.Scripts {
         }
 
         /// <summary>
+        /// 是否在将军
+        /// </summary>
+        /// <param name="isRedChess"></param>
+        /// <returns></returns>
+        public bool IsJiangJun(bool isRedChess) {
+            Vector2Byte shuaiPoint = GetChessPoint((sbyte)(isRedChess ? 16 : 0));
+            for (int i = 0; i < 16; i++) {
+                sbyte tempID = (sbyte)(i | (isRedChess ? 0 : 16));
+                List<Vector2Byte> tempPoints = GetMovePoints(tempID);
+                for (int k = 0; k < tempPoints.Count; k++) {
+                    if (shuaiPoint.IsEqules(tempPoints[k])) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// 判断是否绝杀
+        /// </summary>
+        /// <param name="isRedChess"></param>
+        /// <returns></returns>
+        public bool IsJueSha(bool isRedChess) {
+            for (int i = 0; i < 16; i++) {
+                sbyte chessID = (sbyte)(i | (isRedChess ? 16 : 0));
+                List<Vector2Byte> tempPoints = GetMovePoints(chessID);
+                for (int k = 0; k < tempPoints.Count; k++) {
+                    //判断移动之后是否还是被将军
+                    Chart chart = Chart.Clone(this);
+                    chart.MoveChess(chessID, tempPoints[k]);
+                    if (!chart.IsJiangJun(isRedChess)) {
+                        return false;   
+                    }
+                }
+            }
+            return true;
+        }
+
+
+        /// <summary>
         /// 获取棋子评分
         /// </summary>
         /// <returns></returns>
@@ -287,6 +328,22 @@ namespace Assets.Scripts {
                     }
                 }
                 result.Add(newPoint);
+            }
+            //飞将的情况
+            Vector2Byte enemyShuaiPoint = chart.GetChessPoint((sbyte)(chessID ^ 16));
+            if (enemyShuaiPoint.x == point.x) {
+                bool canFly = true;
+                int startY = Math.Min(point.y, enemyShuaiPoint.y);
+                int endY = Math.Max(point.y, enemyShuaiPoint.y);
+                for (int i = startY + 1; i < endY; i++) {
+                    if (chart.PointHasChess(new Vector2Byte(point.x, i))) {
+                        canFly = false;
+                        break;
+                    }
+                }
+                if (canFly) {
+                    result.Add(enemyShuaiPoint);
+                }
             }
             return result;
         }
@@ -528,9 +585,11 @@ namespace Assets.Scripts {
             bool hasChess = chart.GetChessByPoint(point, out chessID);
             if (hasHill) {
                 //翻过山了
-                if (hasChess && isRedChess != BoardTools.IsRedChess(chessID)) {
-                    //可以打
-                    resultList.Add(point);
+                if (hasChess) {
+                    if (isRedChess != BoardTools.IsRedChess(chessID)) {
+                        //可以打
+                        resultList.Add(point);
+                    }
                     return false;
                 }
             } else {
