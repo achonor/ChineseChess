@@ -146,7 +146,14 @@ namespace Assets.Scripts {
             Chart chart = Chart.Clone(mChart);
             chart.MoveChess(chessID, point);
             //判断是否被将军
-            return !chart.IsJiangJun(!isRedChess);
+            if (chart.IsJiangJun(!isRedChess)) {
+                //对面帅的位置
+                Vector2Byte enemyShuaiPoint = chart.GetShuaiPoint(!isRedChess);
+                if (point.x != enemyShuaiPoint.x || point.y != enemyShuaiPoint.y) {
+                    return false;
+                }
+            }
+            return true;
         }
 
         protected void SelectChess(sbyte chessID) {
@@ -228,7 +235,7 @@ namespace Assets.Scripts {
             }
         }
 
-        protected void MoveChess(sbyte chessID, Vector2Byte point) {
+        protected void MoveChess(sbyte chessID, Vector2Byte point, bool isMachine = false) {
             ChessBase chess = GetChess(chessID);
             Vector2Byte lastPoint = mChart.GetChessPoint(chessID);
             //动画
@@ -241,6 +248,13 @@ namespace Assets.Scripts {
                 //添加
                 AddLastPointEffect(lastPoint);
                 AddNewPointEffect(point);
+
+                if (!isMachine) {
+                    //人机下棋
+                    SearchChart.Search(mChart, 3, (step) => {
+                        MoveChess(step.chessID, step.point, true);
+                    });
+                }
             });
 
             sbyte oldChessID = -1;

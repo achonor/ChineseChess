@@ -86,6 +86,16 @@ namespace Assets.Scripts {
             return result;
         }
 
+        public string GetChartKey() {
+            byte[] bytes = new byte[ChessPointKeys.Count + 1];
+
+            bytes[0] = (byte)(IsRedPlayChess ? 0 : 1);
+            for (int i = 0; i < ChessPointKeys.Count; i++) {
+                bytes[i + 1] = (byte)(ChessPointKeys[i] + 128);
+            }
+            return Convert.ToBase64String(bytes);
+        }
+
         /// <summary>
         /// 更新字典
         /// </summary>
@@ -176,12 +186,12 @@ namespace Assets.Scripts {
         /// <param name="isRedChess"></param>
         /// <returns></returns>
         public bool IsJiangJun(bool isRedChess) {
-            Vector2Byte shuaiPoint = GetChessPoint((sbyte)(isRedChess ? 16 : 0));
+            Vector2Byte enemyShuaiPoint = GetShuaiPoint(!isRedChess);
             for (int i = 0; i < 16; i++) {
                 sbyte tempID = (sbyte)(i | (isRedChess ? 0 : 16));
                 List<Vector2Byte> tempPoints = GetMovePoints(tempID);
                 for (int k = 0; k < tempPoints.Count; k++) {
-                    if (shuaiPoint.IsEqules(tempPoints[k])) {
+                    if (enemyShuaiPoint.IsEqules(tempPoints[k])) {
                         return true;
                     }
                 }
@@ -210,12 +220,31 @@ namespace Assets.Scripts {
             return true;
         }
 
+        public Vector2Byte GetShuaiPoint(bool isRedChess) {
+            return GetChessPoint((sbyte)(isRedChess ? 0 : 16));
+        }
+
+        /// <summary>
+        /// 获取棋谱评分
+        /// </summary>
+        /// <returns></returns>
+        public int GetScore(bool isRedChess) {
+            int redScore = 0;
+            for (int i = 0; i < 16; i++) {
+                redScore += GetChessScore((sbyte)i);
+            }
+            int blockScore = 0;
+            for (int i = 16; i < 32; i++) {
+                blockScore += GetChessScore((sbyte)i);
+            }
+            return isRedChess ? (redScore - blockScore) : (blockScore - redScore);
+        }
 
         /// <summary>
         /// 获取棋子评分
         /// </summary>
         /// <returns></returns>
-        public int GetScore(sbyte chessID) {
+        public int GetChessScore(sbyte chessID) {
             bool isRedChess = BoardTools.IsRedChess(chessID);
             ChessType chessType = BoardTools.GetChessType(chessID);
             if (null == GetChessPoint(chessID)) {

@@ -33,6 +33,15 @@ namespace Achonor
             }
         }
 
+        /// <summary>
+        /// 创建定时器
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="_startInterval"></param>
+        /// <param name="_runCount">小于等于0表示不限制次数</param>
+        /// <param name="_timeInterval"></param>
+        /// <param name="_callback"></param>
+        /// <returns></returns>
         public static SchedulerData CreateScheduler(string name, float _startInterval = 0, int _runCount = 0, float _timeInterval = 1.0f, SchedulerCallback _callback = null)
         {
             if (null == Instance) {
