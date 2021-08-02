@@ -251,7 +251,7 @@ namespace Assets.Scripts {
 
                 if (!isMachine) {
                     //人机下棋
-                    SearchChart.Search(mChart, 3, (step) => {
+                    SearchChart.Search(mChart, 4, (step) => {
                         MoveChess(step.chessID, step.point, true);
                     });
                 }

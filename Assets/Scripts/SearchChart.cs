@@ -51,7 +51,7 @@ public class SearchChart {
     public static void Search(Chart chart, byte lastDepth, Action<Step> callback) {
         if (true) {
             runCount = 0;
-            Step result1 =  DfsSearch(chart, lastDepth);
+            Step result1 =  DfsSearch(chart, lastDepth, true, int.MinValue, int.MaxValue);
             Debug.Log(runCount);
             Achonor.Function.CallCallback(callback, result1);
             return;
@@ -72,7 +72,7 @@ public class SearchChart {
                 threadCount++;
                 new Thread(() => {
                     SearchChart search = new SearchChart();
-                    Step step = DfsSearch(newChart, (byte)(lastDepth - 1));
+                    Step step = DfsSearch(newChart, (byte)(lastDepth - 1), false, int.MinValue, int.MaxValue);
                     step.mostScore *= -1;
                     if (result.mostScore < step.mostScore) {
                         result = newStep;
@@ -93,7 +93,7 @@ public class SearchChart {
     }
 
 
-    public static Step DfsSearch(Chart chart, byte lastDepth) {
+    public static Step DfsSearch(Chart chart, byte lastDepth, bool isMax, int alpha, int beta) {
         Step result = new Step();
         result.searchDepth = lastDepth;
         if (null == chart.GetChessPoint((sbyte)(chart.IsRedPlayChess ? 0 : 16))) {
@@ -111,23 +111,32 @@ public class SearchChart {
                 Step step;
                 if (!UpdateVisited(newChartKey, lastDepth)) {
                     //已经计算过更深的
-                    step = new Step();
-                    step.SetValue(chessID, movePoints[k], lastDepth, mVisitedScore[newChartKey]);
+                    continue;
                 } else {
                     if (lastDepth <= 0) {
                         //直接计算分数，不能往下搜索了
                         step = new Step();
                         step.SetValue(chessID, movePoints[k], lastDepth, newChart.GetScore(chart.IsRedPlayChess));
                     } else {
-                        step = DfsSearch(newChart, (byte)(lastDepth - 1));
-                        //step = new Step();
+                        step = DfsSearch(newChart, (byte)(lastDepth - 1), !isMax, alpha, beta);
                         step.mostScore *= -1;
                     }
                 }
                 if (result.mostScore < step.mostScore) {
                     result.SetValue(chessID, movePoints[k], lastDepth, step.mostScore);
                 }
-                Achonor.Function.Update(mVisitedScore, newChartKey, result.mostScore);
+
+                if (isMax) {
+                    alpha = Math.Max(alpha, step.mostScore);
+                } else {
+                    beta = Math.Min(beta, -step.mostScore);
+                }
+
+                if (beta <= alpha) {
+                    //剪枝
+                    return result;
+                }
+
             }
         }
         return result;

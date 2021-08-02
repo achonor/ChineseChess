@@ -15,7 +15,7 @@ namespace Assets.Scripts {
         /// <summary>
         /// 棋子的位置
         /// </summary>
-        public List<sbyte> ChessPointKeys = new List<sbyte>();
+        public sbyte[] ChessPointKeys = new sbyte[32];
 
         /// <summary>
         /// 点上面的棋子
@@ -33,64 +33,63 @@ namespace Assets.Scripts {
         }
 
         public Chart() {
-            ChessPointKeys.Clear();
             //红旗先下
             mIsRedPlayChess = true;
             //添加红棋
-            ChessPointKeys.Add(BoardTools.GetPointKey(new Vector2Byte(0, -4)));
-            ChessPointKeys.Add(BoardTools.GetPointKey(new Vector2Byte(-1, -4)));
-            ChessPointKeys.Add(BoardTools.GetPointKey(new Vector2Byte(1, -4)));
-            ChessPointKeys.Add(BoardTools.GetPointKey(new Vector2Byte(-2, -4)));
-            ChessPointKeys.Add(BoardTools.GetPointKey(new Vector2Byte(2, -4)));
-            ChessPointKeys.Add(BoardTools.GetPointKey(new Vector2Byte(-3, -4)));
-            ChessPointKeys.Add(BoardTools.GetPointKey(new Vector2Byte(3, -4)));
-            ChessPointKeys.Add(BoardTools.GetPointKey(new Vector2Byte(-4, -4)));
-            ChessPointKeys.Add(BoardTools.GetPointKey(new Vector2Byte(4, -4)));
-            ChessPointKeys.Add(BoardTools.GetPointKey(new Vector2Byte(-3, -2)));
-            ChessPointKeys.Add(BoardTools.GetPointKey(new Vector2Byte(3, -2)));
-            ChessPointKeys.Add(BoardTools.GetPointKey(new Vector2Byte(-4, -1)));
-            ChessPointKeys.Add(BoardTools.GetPointKey(new Vector2Byte(-2, -1)));
-            ChessPointKeys.Add(BoardTools.GetPointKey(new Vector2Byte(0, -1)));
-            ChessPointKeys.Add(BoardTools.GetPointKey(new Vector2Byte(2, -1)));
-            ChessPointKeys.Add(BoardTools.GetPointKey(new Vector2Byte(4, -1)));
+            ChessPointKeys[0] = BoardTools.GetPointKey(new Vector2Byte(0, -4));
+            ChessPointKeys[1] = BoardTools.GetPointKey(new Vector2Byte(-1, -4));
+            ChessPointKeys[2] = BoardTools.GetPointKey(new Vector2Byte(1, -4));
+            ChessPointKeys[3] = BoardTools.GetPointKey(new Vector2Byte(-2, -4));
+            ChessPointKeys[4] = BoardTools.GetPointKey(new Vector2Byte(2, -4));
+            ChessPointKeys[5] = BoardTools.GetPointKey(new Vector2Byte(-3, -4));
+            ChessPointKeys[6] = BoardTools.GetPointKey(new Vector2Byte(3, -4));
+            ChessPointKeys[7] = BoardTools.GetPointKey(new Vector2Byte(-4, -4));
+            ChessPointKeys[8] = BoardTools.GetPointKey(new Vector2Byte(4, -4));
+            ChessPointKeys[9] = BoardTools.GetPointKey(new Vector2Byte(-3, -2));
+            ChessPointKeys[10] = BoardTools.GetPointKey(new Vector2Byte(3, -2));
+            ChessPointKeys[11] = BoardTools.GetPointKey(new Vector2Byte(-4, -1));
+            ChessPointKeys[12] = BoardTools.GetPointKey(new Vector2Byte(-2, -1));
+            ChessPointKeys[13] = BoardTools.GetPointKey(new Vector2Byte(0, -1));
+            ChessPointKeys[14] = BoardTools.GetPointKey(new Vector2Byte(2, -1));
+            ChessPointKeys[15] = BoardTools.GetPointKey(new Vector2Byte(4, -1));
 
             //添加黑棋
-            ChessPointKeys.Add(BoardTools.GetPointKey(new Vector2Byte(0, 5)));
-            ChessPointKeys.Add(BoardTools.GetPointKey(new Vector2Byte(1, 5)));
-            ChessPointKeys.Add(BoardTools.GetPointKey(new Vector2Byte(-1, 5)));
-            ChessPointKeys.Add(BoardTools.GetPointKey(new Vector2Byte(2, 5)));
-            ChessPointKeys.Add(BoardTools.GetPointKey(new Vector2Byte(-2, 5)));
-            ChessPointKeys.Add(BoardTools.GetPointKey(new Vector2Byte(3, 5)));
-            ChessPointKeys.Add(BoardTools.GetPointKey(new Vector2Byte(-3, 5)));
-            ChessPointKeys.Add(BoardTools.GetPointKey(new Vector2Byte(4, 5)));
-            ChessPointKeys.Add(BoardTools.GetPointKey(new Vector2Byte(-4, 5)));
-            ChessPointKeys.Add(BoardTools.GetPointKey(new Vector2Byte(3, 3)));
-            ChessPointKeys.Add(BoardTools.GetPointKey(new Vector2Byte(-3, 3)));
-            ChessPointKeys.Add(BoardTools.GetPointKey(new Vector2Byte(4, 2)));
-            ChessPointKeys.Add(BoardTools.GetPointKey(new Vector2Byte(2, 2)));
-            ChessPointKeys.Add(BoardTools.GetPointKey(new Vector2Byte(0, 2)));
-            ChessPointKeys.Add(BoardTools.GetPointKey(new Vector2Byte(-2, 2)));
-            ChessPointKeys.Add(BoardTools.GetPointKey(new Vector2Byte(-4, 2)));
+            ChessPointKeys[16] = BoardTools.GetPointKey(new Vector2Byte(0, 5));
+            ChessPointKeys[17] = BoardTools.GetPointKey(new Vector2Byte(1, 5));
+            ChessPointKeys[18] = BoardTools.GetPointKey(new Vector2Byte(-1, 5));
+            ChessPointKeys[19] = BoardTools.GetPointKey(new Vector2Byte(2, 5));
+            ChessPointKeys[20] = BoardTools.GetPointKey(new Vector2Byte(-2, 5));
+            ChessPointKeys[21] = BoardTools.GetPointKey(new Vector2Byte(3, 5));
+            ChessPointKeys[22] = BoardTools.GetPointKey(new Vector2Byte(-3, 5));
+            ChessPointKeys[23] = BoardTools.GetPointKey(new Vector2Byte(4, 5));
+            ChessPointKeys[24] = BoardTools.GetPointKey(new Vector2Byte(-4, 5));
+            ChessPointKeys[25] = BoardTools.GetPointKey(new Vector2Byte(3, 3));
+            ChessPointKeys[26] = BoardTools.GetPointKey(new Vector2Byte(-3, 3));
+            ChessPointKeys[27] = BoardTools.GetPointKey(new Vector2Byte(4, 2));
+            ChessPointKeys[28] = BoardTools.GetPointKey(new Vector2Byte(2, 2));
+            ChessPointKeys[29] = BoardTools.GetPointKey(new Vector2Byte(0, 2));
+            ChessPointKeys[30] = BoardTools.GetPointKey(new Vector2Byte(-2, 2));
+            ChessPointKeys[31] = BoardTools.GetPointKey(new Vector2Byte(-4, 2));
             
+            UpdatePointKeyDict();
+        }
+
+        public Chart(Chart chart) {
+            mIsRedPlayChess = chart.mIsRedPlayChess;
+            Array.Copy(chart.ChessPointKeys, ChessPointKeys, ChessPointKeys.Length);
             UpdatePointKeyDict();
         }
 
 
         public static Chart Clone(Chart chart) {
-            Chart result = new Chart();
-            result.mIsRedPlayChess = chart.mIsRedPlayChess;
-            for (int i = 0; i < chart.ChessPointKeys.Count; i++) {
-                result.ChessPointKeys[i] = chart.ChessPointKeys[i];
-            }
-            result.UpdatePointKeyDict();
-            return result;
+            return new Chart(chart);
         }
 
         public string GetChartKey() {
-            byte[] bytes = new byte[ChessPointKeys.Count + 1];
+            byte[] bytes = new byte[ChessPointKeys.Length + 1];
 
             bytes[0] = (byte)(IsRedPlayChess ? 0 : 1);
-            for (int i = 0; i < ChessPointKeys.Count; i++) {
+            for (int i = 0; i < ChessPointKeys.Length; i++) {
                 bytes[i + 1] = (byte)(ChessPointKeys[i] + 128);
             }
             return Convert.ToBase64String(bytes);
@@ -104,7 +103,7 @@ namespace Assets.Scripts {
                 PointKey2ChessDict = new Dictionary<sbyte, sbyte>();
             }
             PointKey2ChessDict.Clear();
-            for (int i = 0; i < ChessPointKeys.Count; i++) {
+            for (int i = 0; i < ChessPointKeys.Length; i++) {
                 if (-1 == ChessPointKeys[i]) {
                     //阵亡
                     continue;
@@ -303,7 +302,7 @@ namespace Assets.Scripts {
         /// <returns></returns>
         public List<Vector2Byte> GetMovePoints(sbyte chessID) {
             List<Vector2Byte> result = new List<Vector2Byte>();
-            if (ChessPointKeys.Count <= chessID) {
+            if (ChessPointKeys.Length <= chessID) {
                 return result;
             }
             Vector2Byte point = GetChessPoint(chessID);
