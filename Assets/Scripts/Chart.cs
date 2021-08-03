@@ -7,6 +7,18 @@ using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Assets.Scripts {
+
+    /// <summary>
+    /// 记录操作的类
+    /// 表示A棋子从A点走到B点吃掉了B棋子
+    /// </summary>
+    public class Record {
+        public sbyte AChessID;
+        public sbyte APoint;
+        public sbyte BChessID;
+        public sbyte BPoint;
+    }
+
     /// <summary>
     /// 当前棋谱
     /// </summary>
@@ -31,6 +43,14 @@ namespace Assets.Scripts {
                 return mIsRedPlayChess;
             }
         }
+
+        private Stack<Record> RecordsStack = new Stack<Record>();
+        public List<Record> Records {
+            get {
+                return RecordsStack.ToList();
+            }
+        }
+
 
         public Chart() {
             //红旗先下
@@ -80,6 +100,9 @@ namespace Assets.Scripts {
             UpdatePointKeyDict();
         }
 
+        //public override string ToString() {
+        //    return Achonor.Function.ToString(ChessPointKeys, "|");
+        //}
 
         public static Chart Clone(Chart chart) {
             return new Chart(chart);
@@ -272,7 +295,7 @@ namespace Assets.Scripts {
                     return 200;
                 }
             } else if (chessType == ChessType.Ma) {
-                return 500;
+                return 450 + ((32 - PointKey2ChessDict.Count) * 4);
             } else if (chessType == ChessType.Che) {
                 return 1000;
             } else if (chessType == ChessType.Pao) {
@@ -282,18 +305,63 @@ namespace Assets.Scripts {
             }
         }
 
+        /// <summary>
+        /// 移动棋子
+        /// </summary>
+        /// <param name="chessID"></param>
+        /// <param name="point"></param>
         public void MoveChess(sbyte chessID, Vector2Byte point) {
-            sbyte oldChessID;
+            sbyte oldChessID = -1;
             if (GetChessByPoint(point, out oldChessID)) {
                 //吃掉棋子
                 ChessPointKeys[oldChessID] = -1;
             }
+            //记录
+            Record record = new Record();
+            record.AChessID = chessID;
+            record.APoint = ChessPointKeys[chessID];
+            record.BChessID = oldChessID;
+            record.BPoint = BoardTools.GetPointKey(point);
+            RecordsStack.Push(record);
+
             //移动棋子
-            ChessPointKeys[chessID] = BoardTools.GetPointKey(point);
+            PointKey2ChessDict.Remove(ChessPointKeys[chessID]);
+            ChessPointKeys[chessID] = record.BPoint;
+            Achonor.Function.Update(PointKey2ChessDict, ChessPointKeys[chessID], chessID);
             mIsRedPlayChess = !mIsRedPlayChess;
-            UpdatePointKeyDict();
         }
 
+        /// <summary>
+        /// 返回上一步
+        /// </summary>
+        public bool BackStep() {
+            if (RecordsStack.Count <= 0) {
+                return false;
+            }
+            Record record = RecordsStack.Pop();
+            if (-1 != record.BChessID) {
+                ChessPointKeys[record.BChessID] = record.BPoint;
+                PointKey2ChessDict[record.BPoint] = record.BChessID;
+            } else {
+                PointKey2ChessDict.Remove(record.BPoint);
+            }
+            ChessPointKeys[record.AChessID] = record.APoint;
+            Achonor.Function.Update(PointKey2ChessDict, record.APoint, record.AChessID);
+            mIsRedPlayChess = !mIsRedPlayChess;
+            return true;
+        }
+
+        public void PrintStep() {
+            StringBuilder printText = new StringBuilder();
+            List<Record> records = RecordsStack.ToList();
+            records.Reverse(0, RecordsStack.Count);
+            for (int i = 0; i < records.Count; i++) {
+                Record record = records[i];
+                printText.Append("->");
+                printText.Append(BoardTools.PrintStep(record.AChessID, record.APoint, record.BPoint));
+            }
+            Debug.Log(printText.ToString());
+        }
 
         /// <summary>
         /// 获取可以走的点

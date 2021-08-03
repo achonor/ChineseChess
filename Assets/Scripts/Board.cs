@@ -59,6 +59,12 @@ namespace Assets.Scripts {
                     ClickPoint(pointKey);
                 }
             }
+
+            if (Input.GetKeyDown(KeyCode.Backspace)) {
+                mChart.BackStep();
+                mChart.BackStep();
+                SetChart(mChart);
+            }
         }
 
 
@@ -251,9 +257,12 @@ namespace Assets.Scripts {
 
                 if (!isMachine) {
                     //人机下棋
+                    Debug.Log(mChart.ToString());
                     SearchChart.Search(mChart, 4, (step) => {
                         MoveChess(step.chessID, step.point, true);
                     });
+                    //mChart.BackStep();
+                    //SetChart(mChart);
                 }
             });
 
