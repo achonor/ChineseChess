@@ -107,9 +107,9 @@ public class SearchChart {
 
             for (int k = 0; k < movePoints.Count; k++) {
                 runCount++;
-                //Record record0 = chart.Records[0];
-                //if (record0.AChessID == 21 && record0.APoint == 46 && record0.BPoint == 67 && chessID == 9 && k == 8) {
-                //    record0.AChessID = 21;
+                Record record0 = chart.Records[0];
+                //if (record0.AChessID == 22 && record0.APoint == 19 && record0.BPoint == 27 && chessID == 7) {
+                //    record0.AChessID |= 0;
                 //}
                 Chart newChart = chart;
                 newChart.MoveChess(chessID, movePoints[k]);

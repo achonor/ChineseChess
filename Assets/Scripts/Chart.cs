@@ -272,36 +272,23 @@ namespace Assets.Scripts {
             if (null == GetChessPoint(chessID)) {
                 return 0;
             }
+            int canMoveCount = GetMovePoints(chessID, false).Count;
+            int selfChessCount = GetInRangeChess(chessID, isRedChess).Count;
+            int enemyChessCount = GetInRangeChess(chessID, !isRedChess).Count;
             if (chessType == ChessType.Shuai) {
-                return 10000;
+                return 10000 + canMoveCount * 2 + selfChessCount * 10 + enemyChessCount * 20;
             } else if (chessType == ChessType.Shi) {
-                Vector2Byte enemyChe1 = GetChessPoint((sbyte)(isRedChess ? 23 : 7));
-                Vector2Byte enemyChe2 = GetChessPoint((sbyte)(isRedChess ? 24 : 8));
-                if (null != enemyChe1 && null != enemyChe2) {
-                    return 400;
-                } else if (null == enemyChe1 && null == enemyChe2) {
-                    return 150;
-                } else {
-                    return 300;
-                }
+                return 250 + canMoveCount * 2 + selfChessCount * 10 + enemyChessCount * 20;
             } else if (chessType == ChessType.Xiang) {
-                Vector2Byte enemyPao1 = GetChessPoint((sbyte)(isRedChess ? 25 : 9));
-                Vector2Byte enemyPao2 = GetChessPoint((sbyte)(isRedChess ? 26 : 10));
-                if (null != enemyPao1 && null != enemyPao2) {
-                    return 300;
-                } else if (null == enemyPao1 && null == enemyPao2) {
-                    return 150;
-                } else {
-                    return 200;
-                }
+                return 200 + canMoveCount * 2 + selfChessCount * 20 + enemyChessCount * 50;
             } else if (chessType == ChessType.Ma) {
-                return 450 + ((32 - PointKey2ChessDict.Count) * 4);
+                return 450 + ((32 - PointKey2ChessDict.Count) * 4) + canMoveCount * 20 + selfChessCount * 20 + enemyChessCount * 50;
             } else if (chessType == ChessType.Che) {
-                return 1000;
+                return 1000 + canMoveCount * 8 + selfChessCount * 20 + enemyChessCount * 50;
             } else if (chessType == ChessType.Pao) {
-                return 500;
+                return 500 + canMoveCount * 8 + selfChessCount * 20 + enemyChessCount * 50;
             } else {
-                return IsPassRiver(chessID) ? 200 : 100;
+                return 100 + canMoveCount * 20 + selfChessCount * 20 + enemyChessCount * 50;
             }
         }
 
@@ -368,7 +355,7 @@ namespace Assets.Scripts {
         /// </summary>
         /// <param name="chessID"></param>
         /// <returns></returns>
-        public List<Vector2Byte> GetMovePoints(sbyte chessID) {
+        public List<Vector2Byte> GetMovePoints(sbyte chessID, bool isTrue = true) {
             List<Vector2Byte> result = new List<Vector2Byte>();
             if (ChessPointKeys.Length <= chessID) {
                 return result;
@@ -396,6 +383,42 @@ namespace Assets.Scripts {
             }
             return result;
         }
+
+        /// <summary>
+        /// 获取可行走范围内指定颜色的棋
+        /// </summary>
+        /// <param name="chessID"></param>
+        /// <param name="isRedChess"></param>
+        /// <returns></returns>
+        public List<sbyte> GetInRangeChess(sbyte chessID, bool isRedChess) {
+            List<sbyte> result = new List<sbyte>();
+            if (ChessPointKeys.Length <= chessID) {
+                return result;
+            }
+            Vector2Byte point = GetChessPoint(chessID);
+            if (null == point) {
+                //阵亡
+                return result;
+            }
+            ChessType chessType = BoardTools.GetChessType(chessID);
+            if (chessType == ChessType.Shuai) {
+                result = GetInRangeChess_Shuai(this, chessID, isRedChess);
+            } else if (chessType == ChessType.Shi) {
+                result = GetInRangeChess_Shi(this, chessID, isRedChess);
+            } else if (chessType == ChessType.Xiang) {
+                result = GetInRangeChess_Xiang(this, chessID, isRedChess);
+            } else if (chessType == ChessType.Ma) {
+                result = GetInRangeChess_Ma(this, chessID, isRedChess);
+            } else if (chessType == ChessType.Che) {
+                result = GetInRangeChess_Che(this, chessID, isRedChess);
+            } else if (chessType == ChessType.Pao) {
+                result = GetInRangeChess_Pao(this, chessID, isRedChess);
+            } else if (chessType == ChessType.Bing) {
+                result = GetInRangeChess_Bing(this, chessID, isRedChess);
+            }
+            return result;
+        }
+
 
         /// <summary>
         /// 帅将的移动向量
@@ -427,7 +450,7 @@ namespace Assets.Scripts {
             }
             //飞将的情况
             Vector2Byte enemyShuaiPoint = chart.GetChessPoint((sbyte)(chessID ^ 16));
-            if (enemyShuaiPoint.x == point.x) {
+            if (null != enemyShuaiPoint && enemyShuaiPoint.x == point.x) {
                 bool canFly = true;
                 int startY = Math.Min(point.y, enemyShuaiPoint.y);
                 int endY = Math.Max(point.y, enemyShuaiPoint.y);
@@ -443,7 +466,29 @@ namespace Assets.Scripts {
             }
             return result;
         }
-
+        
+        public static List<sbyte> GetInRangeChess_Shuai(Chart chart, sbyte chessID, bool isRedChess) {
+            List<sbyte> result = new List<sbyte>();
+            Vector2Byte point = chart.GetChessPoint(chessID);
+            if (null == point) {
+                return result;
+            }
+            for (int i = 0; i < MoveDir_Shuai.Count; i++) {
+                Vector2Byte newPoint = point + MoveDir_Shuai[i];
+                if (!BoardTools.IsInBoard(newPoint)) {
+                    continue;
+                }
+                sbyte tempChessID;
+                if (!chart.GetChessByPoint(newPoint, out tempChessID)) {
+                    continue;
+                }
+                if (isRedChess != BoardTools.IsRedChess(tempChessID)) {
+                    continue;
+                }
+                result.Add(tempChessID);
+            }
+            return result;
+        }
 
         /// <summary>
         /// 士的移动向量
@@ -472,6 +517,29 @@ namespace Assets.Scripts {
                     }
                 }
                 result.Add(newPoint);
+            }
+            return result;
+        }
+
+        public static List<sbyte> GetInRangeChess_Shi(Chart chart, sbyte chessID, bool isRedChess) {
+            List<sbyte> result = new List<sbyte>();
+            Vector2Byte point = chart.GetChessPoint(chessID);
+            if (null == point) {
+                return result;
+            }
+            for (int i = 0; i < MoveDir_Shi.Count; i++) {
+                Vector2Byte newPoint = point + MoveDir_Shi[i];
+                if (!BoardTools.IsInBoard(newPoint)) {
+                    continue;
+                }
+                sbyte tempChessID;
+                if (!chart.GetChessByPoint(newPoint, out tempChessID)) {
+                    continue;
+                }
+                if (isRedChess != BoardTools.IsRedChess(tempChessID)) {
+                    continue;
+                }
+                result.Add(tempChessID);
             }
             return result;
         }
@@ -521,6 +589,33 @@ namespace Assets.Scripts {
             return result;
         }
 
+        public static List<sbyte> GetInRangeChess_Xiang(Chart chart, sbyte chessID, bool isRedChess) {
+            List<sbyte> result = new List<sbyte>();
+            Vector2Byte point = chart.GetChessPoint(chessID);
+            if (null == point) {
+                return result;
+            }
+            for (int i = 0; i < MoveDir_Xiang.Count; i++) {
+                Vector2Byte newPoint = point + MoveDir_Xiang[i];
+                Vector2Byte xiangEye = point + XiangEyeDir[i];
+                if (!BoardTools.IsInBoard(newPoint)) {
+                    continue;
+                }
+                if (chart.PointHasChess(xiangEye)) {
+                    continue;
+                }
+                sbyte tempChessID;
+                if (!chart.GetChessByPoint(newPoint, out tempChessID)) {
+                    continue;
+                }
+                if (isRedChess != BoardTools.IsRedChess(tempChessID)) {
+                    continue;
+                }
+                result.Add(tempChessID);
+            }
+            return result;
+        }
+
         /// <summary>
         /// 马的移动向量
         /// </summary>
@@ -560,6 +655,34 @@ namespace Assets.Scripts {
                     continue;
                 }
                 result.Add(newPoint);
+            }
+            return result;
+        }
+
+
+        public static List<sbyte> GetInRangeChess_Ma(Chart chart, sbyte chessID, bool isRedChess) {
+            List<sbyte> result = new List<sbyte>();
+            Vector2Byte point = chart.GetChessPoint(chessID);
+            if (null == point) {
+                return result;
+            }
+            for (int i = 0; i < MoveDir_Ma.Count; i++) {
+                Vector2Byte newPoint = point + MoveDir_Ma[i];
+                Vector2Byte maFoot = point + MaFootDir[i];
+                if (!BoardTools.IsInBoard(newPoint)) {
+                    continue;
+                }
+                if (chart.PointHasChess(maFoot)) {
+                    continue;
+                }
+                sbyte tempChessID;
+                if (!chart.GetChessByPoint(newPoint, out tempChessID)) {
+                    continue;
+                }
+                if (isRedChess != BoardTools.IsRedChess(tempChessID)) {
+                    continue;
+                }
+                result.Add(tempChessID);
             }
             return result;
         }
@@ -611,6 +734,53 @@ namespace Assets.Scripts {
             resultList.Add(point);
             if (chart.PointHasChess(point)) {
                 return false;
+            }
+            return true;
+        }
+
+        public static List<sbyte> GetInRangeChess_Che(Chart chart, sbyte chessID, bool isRedChess) {
+            List<sbyte> result = new List<sbyte>();
+            Vector2Byte point = chart.GetChessPoint(chessID);
+            if (null == point) {
+                return result;
+            }
+            for (int i = 1; i <= 8; i++) {
+                Vector2Byte newPoint = point + new Vector2Byte(i, 0);
+                if (CheckPoint_Che2(chart, isRedChess, result, newPoint)) {
+                    break;
+                }
+            }
+            for (int i = 1; i <= 8; i++) {
+                Vector2Byte newPoint = point + new Vector2Byte(-i, 0);
+                if (CheckPoint_Che2(chart, isRedChess, result, newPoint)) {
+                    break;
+                }
+            }
+            //y方向移动
+            for (int i = 1; i <= 9; i++) {
+                Vector2Byte newPoint = point + new Vector2Byte(0, i);
+                if (CheckPoint_Che2(chart, isRedChess, result, newPoint)) {
+                    break;
+                }
+            }
+            for (int i = 1; i <= 9; i++) {
+                Vector2Byte newPoint = point + new Vector2Byte(0, -i);
+                if (CheckPoint_Che2(chart, isRedChess, result, newPoint)) {
+                    break;
+                }
+            }
+            return result;
+        }
+        private static bool CheckPoint_Che2(Chart chart, bool isRedChess, List<sbyte> resultList, Vector2Byte point) {
+            if (!BoardTools.IsInBoard(point)) {
+                return true;
+            }
+            sbyte tempChessID;
+            if (!chart.GetChessByPoint(point, out tempChessID)) {
+                return false;
+            }
+            if (isRedChess == BoardTools.IsRedChess(tempChessID)) {
+                resultList.Add(tempChessID);
             }
             return true;
         }
@@ -697,6 +867,80 @@ namespace Assets.Scripts {
             return true;
         }
 
+        public static List<sbyte> GetInRangeChess_Pao(Chart chart, sbyte chessID, bool isRedChess) {
+            List<sbyte> result = new List<sbyte>();
+            Vector2Byte point = chart.GetChessPoint(chessID);
+            if (null == point) {
+                return result;
+            }
+            bool hasHill = false;
+            //x方向移动
+            for (int i = 1; i <= 8; i++) {
+                Vector2Byte newPoint = point + new Vector2Byte(i, 0);
+                if (!BoardTools.IsInBoard(newPoint)) {
+                    break;
+                }
+                if (!CheckPoint_Pao2(chart, isRedChess, result, newPoint, hasHill)) {
+                    if (hasHill) {
+                        break;
+                    }
+                    hasHill = true;
+                }
+            }
+            hasHill = false;
+            for (int i = 1; i <= 8; i++) {
+                Vector2Byte newPoint = point + new Vector2Byte(-i, 0);
+                if (!BoardTools.IsInBoard(newPoint)) {
+                    break;
+                }
+                if (!CheckPoint_Pao2(chart, isRedChess, result, newPoint, hasHill)) {
+                    if (hasHill) {
+                        break;
+                    }
+                    hasHill = true;
+                }
+            }
+
+            //y方向移动
+            hasHill = false;
+            for (int i = 1; i <= 9; i++) {
+                Vector2Byte newPoint = point + new Vector2Byte(0, i);
+                if (!BoardTools.IsInBoard(newPoint)) {
+                    break;
+                }
+                if (!CheckPoint_Pao2(chart, isRedChess, result, newPoint, hasHill)) {
+                    if (hasHill) {
+                        break;
+                    }
+                    hasHill = true;
+                }
+            }
+            hasHill = false;
+            for (int i = 1; i <= 9; i++) {
+                Vector2Byte newPoint = point + new Vector2Byte(0, -i);
+                if (!BoardTools.IsInBoard(newPoint)) {
+                    break;
+                }
+                if (!CheckPoint_Pao2(chart, isRedChess, result, newPoint, hasHill)) {
+                    if (hasHill) {
+                        break;
+                    }
+                    hasHill = true;
+                }
+            }
+            return result;
+        }
+
+        private static bool CheckPoint_Pao2(Chart chart, bool isRedChess, List<sbyte> resultList, Vector2Byte point, bool hasHill) {
+            sbyte chessID;
+            bool hasChess = chart.GetChessByPoint(point, out chessID);
+            if (hasHill && hasChess) {
+                if (isRedChess == BoardTools.IsRedChess(chessID)) {
+                    resultList.Add(chessID);
+                }
+            } 
+            return !hasChess;
+        }
 
         /// <summary>
         /// 兵的移动向量
@@ -729,6 +973,47 @@ namespace Assets.Scripts {
                     continue;
                 }
                 result.Add(point + moveDir);
+            }
+            return result;
+        }
+
+        public static List<sbyte> GetInRangeChess_Bing(Chart chart, sbyte chessID, bool isRedChess) {
+            List<sbyte> result = new List<sbyte>();
+            Vector2Byte point = chart.GetChessPoint(chessID);
+            if (null == point) {
+                return result;
+            }
+            bool isRedBing = BoardTools.IsRedChess(chessID);
+            for (int i = 0; i < MoveDir_Bing.Count; i++) {
+                Vector2Byte moveDir = MoveDir_Bing[i];
+                if (isRedBing) {
+                    if (-1 == moveDir.y) {
+                        //兵不能后退
+                        continue;
+                    }
+                } else {
+                    if (1 == moveDir.y) {
+                        //卒不能后退
+                        continue;
+                    }
+                }
+                if (!chart.IsPassRiver(chessID) && 0 != moveDir.x) {
+                    //没过河的兵卒不能左右
+                    continue;
+                }
+
+                Vector2Byte newPoint = point + moveDir;
+                if (!BoardTools.IsInBoard(newPoint)) {
+                    continue;
+                }
+                sbyte tempChessID;
+                if (!chart.GetChessByPoint(newPoint, out tempChessID)) {
+                    continue;
+                }
+                if (isRedChess != BoardTools.IsRedChess(tempChessID)) {
+                    continue;
+                }
+                result.Add(tempChessID);
             }
             return result;
         }
