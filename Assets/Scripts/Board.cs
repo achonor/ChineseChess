@@ -35,6 +35,10 @@ namespace Assets.Scripts {
 
         private bool mIsChessMoving = false;
 
+        protected override void Awake() {
+            base.Awake();
+            BoardTools.InitData();
+        }
 
         protected void Start() {
             SetChart(new Chart());

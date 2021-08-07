@@ -11,6 +11,5 @@ public class Chess_0_1_0 : Chess_0_1 {
 
     protected override void Awake() {
         base.Awake();
-        SetPosPoint(new Vector2Byte(-1, -4));
     }
 }

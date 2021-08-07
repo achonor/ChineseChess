@@ -10,6 +10,5 @@ using UnityEngine;
 public class Chess_1_5_1 : Chess_0_5 {
     protected override void Awake() {
         base.Awake();
-        SetPosPoint(new Vector2Byte(-3, 3));
     }
 }

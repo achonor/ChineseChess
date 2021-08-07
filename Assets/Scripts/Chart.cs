@@ -36,40 +36,40 @@ namespace Assets.Scripts {
             //红旗先下
             mIsRedPlayChess = true;
             //添加红棋
-            ChessPointKeys[0] = BoardTools.GetPointKey(new Vector2Byte(0, -4));
-            ChessPointKeys[1] = BoardTools.GetPointKey(new Vector2Byte(-1, -4));
-            ChessPointKeys[2] = BoardTools.GetPointKey(new Vector2Byte(1, -4));
-            ChessPointKeys[3] = BoardTools.GetPointKey(new Vector2Byte(-2, -4));
-            ChessPointKeys[4] = BoardTools.GetPointKey(new Vector2Byte(2, -4));
-            ChessPointKeys[5] = BoardTools.GetPointKey(new Vector2Byte(-3, -4));
-            ChessPointKeys[6] = BoardTools.GetPointKey(new Vector2Byte(3, -4));
-            ChessPointKeys[7] = BoardTools.GetPointKey(new Vector2Byte(-4, -4));
-            ChessPointKeys[8] = BoardTools.GetPointKey(new Vector2Byte(4, -4));
-            ChessPointKeys[9] = BoardTools.GetPointKey(new Vector2Byte(-3, -2));
-            ChessPointKeys[10] = BoardTools.GetPointKey(new Vector2Byte(3, -2));
-            ChessPointKeys[11] = BoardTools.GetPointKey(new Vector2Byte(-4, -1));
-            ChessPointKeys[12] = BoardTools.GetPointKey(new Vector2Byte(-2, -1));
-            ChessPointKeys[13] = BoardTools.GetPointKey(new Vector2Byte(0, -1));
-            ChessPointKeys[14] = BoardTools.GetPointKey(new Vector2Byte(2, -1));
-            ChessPointKeys[15] = BoardTools.GetPointKey(new Vector2Byte(4, -1));
+            ChessPointKeys[0] = BoardTools.GetPointKey(new Vector2Byte(4, 0));
+            ChessPointKeys[1] = BoardTools.GetPointKey(new Vector2Byte(3, 0));
+            ChessPointKeys[2] = BoardTools.GetPointKey(new Vector2Byte(5, 0));
+            ChessPointKeys[3] = BoardTools.GetPointKey(new Vector2Byte(2, 0));
+            ChessPointKeys[4] = BoardTools.GetPointKey(new Vector2Byte(6, 0));
+            ChessPointKeys[5] = BoardTools.GetPointKey(new Vector2Byte(1, 0));
+            ChessPointKeys[6] = BoardTools.GetPointKey(new Vector2Byte(7, 0));
+            ChessPointKeys[7] = BoardTools.GetPointKey(new Vector2Byte(0, 0));
+            ChessPointKeys[8] = BoardTools.GetPointKey(new Vector2Byte(8, 0));
+            ChessPointKeys[9] = BoardTools.GetPointKey(new Vector2Byte(1, 2));
+            ChessPointKeys[10] = BoardTools.GetPointKey(new Vector2Byte(7, 2));
+            ChessPointKeys[11] = BoardTools.GetPointKey(new Vector2Byte(0, 3));
+            ChessPointKeys[12] = BoardTools.GetPointKey(new Vector2Byte(2, 3));
+            ChessPointKeys[13] = BoardTools.GetPointKey(new Vector2Byte(4, 3));
+            ChessPointKeys[14] = BoardTools.GetPointKey(new Vector2Byte(6, 3));
+            ChessPointKeys[15] = BoardTools.GetPointKey(new Vector2Byte(8, 3));
 
             //添加黑棋
-            ChessPointKeys[16] = BoardTools.GetPointKey(new Vector2Byte(0, 5));
-            ChessPointKeys[17] = BoardTools.GetPointKey(new Vector2Byte(1, 5));
-            ChessPointKeys[18] = BoardTools.GetPointKey(new Vector2Byte(-1, 5));
-            ChessPointKeys[19] = BoardTools.GetPointKey(new Vector2Byte(2, 5));
-            ChessPointKeys[20] = BoardTools.GetPointKey(new Vector2Byte(-2, 5));
-            ChessPointKeys[21] = BoardTools.GetPointKey(new Vector2Byte(3, 5));
-            ChessPointKeys[22] = BoardTools.GetPointKey(new Vector2Byte(-3, 5));
-            ChessPointKeys[23] = BoardTools.GetPointKey(new Vector2Byte(4, 5));
-            ChessPointKeys[24] = BoardTools.GetPointKey(new Vector2Byte(-4, 5));
-            ChessPointKeys[25] = BoardTools.GetPointKey(new Vector2Byte(3, 3));
-            ChessPointKeys[26] = BoardTools.GetPointKey(new Vector2Byte(-3, 3));
-            ChessPointKeys[27] = BoardTools.GetPointKey(new Vector2Byte(4, 2));
-            ChessPointKeys[28] = BoardTools.GetPointKey(new Vector2Byte(2, 2));
-            ChessPointKeys[29] = BoardTools.GetPointKey(new Vector2Byte(0, 2));
-            ChessPointKeys[30] = BoardTools.GetPointKey(new Vector2Byte(-2, 2));
-            ChessPointKeys[31] = BoardTools.GetPointKey(new Vector2Byte(-4, 2));
+            ChessPointKeys[16] = BoardTools.GetPointKey(new Vector2Byte(4, 9));
+            ChessPointKeys[17] = BoardTools.GetPointKey(new Vector2Byte(5, 9));
+            ChessPointKeys[18] = BoardTools.GetPointKey(new Vector2Byte(3, 9));
+            ChessPointKeys[19] = BoardTools.GetPointKey(new Vector2Byte(6, 9));
+            ChessPointKeys[20] = BoardTools.GetPointKey(new Vector2Byte(2, 9));
+            ChessPointKeys[21] = BoardTools.GetPointKey(new Vector2Byte(7, 9));
+            ChessPointKeys[22] = BoardTools.GetPointKey(new Vector2Byte(1, 9));
+            ChessPointKeys[23] = BoardTools.GetPointKey(new Vector2Byte(8, 9));
+            ChessPointKeys[24] = BoardTools.GetPointKey(new Vector2Byte(0, 9));
+            ChessPointKeys[25] = BoardTools.GetPointKey(new Vector2Byte(7, 7));
+            ChessPointKeys[26] = BoardTools.GetPointKey(new Vector2Byte(1, 7));
+            ChessPointKeys[27] = BoardTools.GetPointKey(new Vector2Byte(8, 6));
+            ChessPointKeys[28] = BoardTools.GetPointKey(new Vector2Byte(6, 6));
+            ChessPointKeys[29] = BoardTools.GetPointKey(new Vector2Byte(4, 6));
+            ChessPointKeys[30] = BoardTools.GetPointKey(new Vector2Byte(2, 6));
+            ChessPointKeys[31] = BoardTools.GetPointKey(new Vector2Byte(0, 6));
             
             UpdatePointKeyDict();
         }
