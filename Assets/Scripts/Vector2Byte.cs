@@ -27,5 +27,8 @@ namespace Assets.Scripts {
         public static Vector2Byte operator+ (Vector2Byte a, Vector2Byte b) {
             return new Vector2Byte((sbyte)(a.x + b.x), (sbyte)(a.y + b.y));
         }
+        public static Vector2Byte operator /(Vector2Byte a, sbyte b) {
+            return new Vector2Byte((sbyte)(a.x / b), (sbyte)(a.y / b));
+        }
     }
 }

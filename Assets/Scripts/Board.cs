@@ -63,6 +63,12 @@ namespace Assets.Scripts {
                     ClickPoint(pointKey);
                 }
             }
+
+            if (Input.GetKeyDown(KeyCode.Backspace)) {
+                mChart.BackStep();
+                mChart.BackStep();
+                SetChart(mChart);
+            }
         }
 
 
@@ -91,6 +97,30 @@ namespace Assets.Scripts {
         /// <param name="pointKey"></param>
         protected void ClickPoint(sbyte pointKey) {
             Vector2Byte point = BoardTools.GetPointByKey(pointKey);
+            //test
+            //sbyte testChessID = -1;
+            //if (mChart.GetChessByPoint(point, out testChessID)) {
+            //    bool isRedChess = BoardTools.IsRedChess(testChessID);
+            //    List<sbyte> selfChesss = mChart.GetInRangeChess(testChessID, isRedChess);
+            //    List<sbyte> enemyChesss = mChart.GetInRangeChess(testChessID, !isRedChess);
+            //    StringBuilder logText = new StringBuilder();
+            //    logText.Append("我方棋子数量 : ");
+            //    logText.Append(selfChesss.Count);
+            //    for (int i = 0; i < selfChesss.Count; i++) {
+            //        logText.Append("|" + selfChesss[i]);
+            //    }
+            //    Debug.Log(logText.ToString());
+
+            //    logText = new StringBuilder();
+            //    logText.Append("敌方棋子数量 : ");
+            //    logText.Append(enemyChesss.Count);
+            //    for (int i = 0; i < enemyChesss.Count; i++) {
+            //        logText.Append("|" + enemyChesss[i]);
+            //    }
+            //    Debug.Log(logText.ToString());
+            //}
+            //end test
+
             if (-1 == SelectedChessID) {
                 //没有选中的棋
                 sbyte chessID = -1;

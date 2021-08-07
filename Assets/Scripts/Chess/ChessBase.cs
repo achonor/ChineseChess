@@ -42,7 +42,6 @@ public class ChessBase : BaseBehaviour {
 
     protected override void Start() {
         base.Start();
-        SetPosPoint(PosPoint);
     }
 
 
