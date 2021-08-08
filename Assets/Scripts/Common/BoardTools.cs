@@ -14,6 +14,7 @@ namespace Assets.Scripts.Common {
         private static sbyte[,] PointKeyArray = new sbyte[9,10];
         private static bool[,] InJiuGongArray = new bool[9,10];
         private static Vector2Byte[] PointByKeyArray = new Vector2Byte[90];
+        private static Vector2Byte[,] MaFootPointArray = new Vector2Byte[90,90];
         private static List<Vector2Byte>[,] MovePointsList = new List<Vector2Byte>[32, 90];
 
         /// <summary>
@@ -51,6 +52,21 @@ namespace Assets.Scripts.Common {
                     InJiuGongArray[i, k] = (3 <= i && i <= 5) && ((0 <= k && k <= 2) || (7 <= k && k <= 9));
                 }
             }
+            for (sbyte i = 0; i < 90; i++) {
+                for (sbyte k = 0; k < 90; k++) {
+                    Vector2Byte aPoint = BoardTools.GetPointByKey(i);
+                    Vector2Byte bPoint = BoardTools.GetPointByKey(k);
+                    if (3 != Math.Abs(aPoint.x - bPoint.x) + Math.Abs(aPoint.y - bPoint.y)) {
+                        MaFootPointArray[i, k] = aPoint;
+                    } else {
+                        if (1 == Math.Abs(aPoint.x - bPoint.x)) {
+                            MaFootPointArray[i, k] = new Vector2Byte(aPoint.x, aPoint.y + (aPoint.y < bPoint.y ? 1 : -1));
+                        } else {
+                            MaFootPointArray[i, k] = new Vector2Byte(aPoint.x + (aPoint.x < bPoint.x ? 1 : -1), aPoint.y);
+                        }
+                    }
+                }
+            }
             for (sbyte i = 0; i < 32; i++) {
                 for (sbyte k = 0; k < 90; k++) {
                     MovePointsList[i, k] = CalcMovePoints(i, k);
@@ -58,8 +74,17 @@ namespace Assets.Scripts.Common {
             }
         }
 
+        /// <summary>
+        /// 1024以内数据二进制中1的个数
+        /// </summary>
+        /// <param name="number"></param>
+        /// <returns></returns>
         public static byte GetBinaryOneCount(int number) {
             return BinaryOneCount[number];
+        }
+
+        public static Vector2Byte GetMaFootPoint(Vector2Byte aPoint, Vector2Byte bPoint) {
+            return MaFootPointArray[GetPointKey(aPoint), GetPointKey(bPoint)];
         }
 
         /// <summary>
@@ -335,8 +360,8 @@ namespace Assets.Scripts.Common {
                         continue;
                     }
                 }
-                if ((!isRedChess)) {
-                    if (-1 == MoveDir_Bing[i].y) {
+                if (!isRedChess) {
+                    if (1 == MoveDir_Bing[i].y) {
                         continue;
                     }
                     if ((!IsInRedRange(newPoint)) && 0 != MoveDir_Bing[i].x) {

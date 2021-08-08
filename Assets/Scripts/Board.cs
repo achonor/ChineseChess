@@ -53,6 +53,7 @@ namespace Assets.Scripts {
             }
         }
 
+        private sbyte LastPointKey = -1;
         protected void Update() {
             if (Input.GetMouseButtonDown(0)) {
                 //射线检测
@@ -61,6 +62,12 @@ namespace Assets.Scripts {
                 if (null != hit.collider && !mIsChessMoving) {
                     sbyte pointKey = sbyte.Parse(hit.collider.name);
                     ClickPoint(pointKey);
+                    if (0 <= LastPointKey) {
+                        Debug.Log("中间棋子数量：" + mChart.GetLineChessCount(BoardTools.GetPointByKey(pointKey), BoardTools.GetPointByKey(LastPointKey)));
+                        LastPointKey = -1;
+                    } else {
+                        LastPointKey = pointKey;
+                    }
                 }
             }
 
@@ -318,3 +325,60 @@ namespace Assets.Scripts {
         }
     }
 }
+
+
+
+/*
+            System.Random random = new System.Random();
+            HashSet<ulong> hasValue = new HashSet<ulong>();
+
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.Append("{");
+            for (int k = 0; k < 7; k++) {
+                stringBuilder.Append("{");
+                for (int l = 0; l < 90; l++) {
+                    ulong number = ((((ulong)random.Next()) << 31) ^ (((ulong)random.Next()) << 21) ^ (((ulong)random.Next()) << 11));
+                    if (hasValue.Contains(number)) {
+                        Debug.LogError("中彩票了");
+                    }
+                    hasValue.Add(number);
+                    if (89 == l) {
+                        stringBuilder.Append(number);
+                    } else {
+                        stringBuilder.Append(number.ToString() + ",");
+                    }
+                }
+                if (6 == k) {
+                    stringBuilder.Append("}");
+                } else {
+                    stringBuilder.Append("},");
+                }
+            }
+            stringBuilder.Append("}");
+            Debug.Log(stringBuilder);
+
+            stringBuilder = new StringBuilder();
+            stringBuilder.Append("{");
+            for (int k = 0; k < 7; k++) {
+                stringBuilder.Append("{");
+                for (int l = 0; l < 90; l++) {
+                    ulong number = ((((ulong)random.Next()) << 31) ^ (((ulong)random.Next()) << 21) ^ (((ulong)random.Next()) << 11));
+                    if (hasValue.Contains(number)) {
+                        Debug.LogError("中彩票了");
+                    }
+                    hasValue.Add(number);
+                    if (89 == l) {
+                        stringBuilder.Append(number);
+                    } else {
+                        stringBuilder.Append(number.ToString() + ",");
+                    }
+                }
+                if (6 == k) {
+                    stringBuilder.Append("}");
+                } else {
+                    stringBuilder.Append("},");
+                }
+            }
+            stringBuilder.Append("}");
+            Debug.Log(stringBuilder);
+*/

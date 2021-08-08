@@ -139,7 +139,6 @@ namespace Assets.Scripts {
         }
 
         public string GetChartKey() {
-            
             byte[] bytes = new byte[33];
 
             bytes[0] = (byte)(IsRedPlayChess ? 0 : 1);
@@ -153,7 +152,7 @@ namespace Assets.Scripts {
             Array.Sort<byte>(bytes, 27, 5);
             bytes[32] = (byte)(IsRedPlayChess ? 0 : 1);
             return Convert.ToBase64String(bytes);
-            
+
             //return ZobristKey;
         }
 

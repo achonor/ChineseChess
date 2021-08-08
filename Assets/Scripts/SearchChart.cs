@@ -14,6 +14,7 @@ public class SearchChart {
     public const sbyte SByte_1 = (sbyte)1;
     public const sbyte SByte_16 = (sbyte)16;
 
+    public static sbyte[] ChessCheckOrder = new sbyte[] { 7, 8, 9, 10, 5, 6, 3, 4, 1, 2, 11, 12, 13, 14, 15, 0 };
     public class Step {
         public sbyte chessID;
         public Vector2Byte point;
@@ -49,49 +50,22 @@ public class SearchChart {
     }
     private static int runCount = 0;
     public static void Search(Chart chart, byte lastDepth, Action<Step> callback) {
-        if (true) {
-            mVisited.Clear();
-            runCount = 0;
-            Step result1 = null;
+        runCount = 0;
+        mVisited.Clear();
+        Step result = null;
+        Thread thread = new Thread(()=> {
             try {
-                result1 = DfsSearch(chart, lastDepth, true, int.MinValue, int.MaxValue);
+                result = DfsSearch(chart, lastDepth, true, int.MinValue, int.MaxValue);
             } catch (Exception ex) {
                 Debug.LogError(ex.ToString());
             }
-            Debug.Log(runCount);
-            Achonor.Function.CallCallback(callback, result1);
-            return;
-        }
-
-        Step result = new Step();
-        mVisited.Clear();
-        int threadCount = 1;
-        for (sbyte i = 0; i < 16; i++) {
-            sbyte chessID = (sbyte)(i | (chart.IsRedPlayChess ? SByte_0 : SByte_16));
-            List<Vector2Byte> movePoints = chart.GetMovePoints(chessID);
-            for (int k = 0; k < movePoints.Count; k++) {
-                Chart newChart = Chart.Clone(chart);
-                newChart.MoveChess(chessID, movePoints[k]);
-                Step newStep = new Step();
-                newStep.SetValue(chessID, movePoints[k], lastDepth, int.MinValue);
-
-                threadCount++;
-                new Thread(() => {
-                    SearchChart search = new SearchChart();
-                    Step step = DfsSearch(newChart, (byte)(lastDepth - 1), false, int.MinValue, int.MaxValue);
-                    step.mostScore *= -1;
-                    if (result.mostScore < step.mostScore) {
-                        result = newStep;
-                        result.mostScore = step.mostScore;
-                    }
-                    threadCount--;
-                }).Start();
-            }
-        }
-        threadCount--;
+        });
+        thread.Start();
+        thread.IsBackground = true;
         // µÈ´ýËÑË÷Íê³É
         Achonor.Scheduler.CreateScheduler("WaitSearchFinished", 1.0f, 0, 0.1f, () => {
-            if (0 == threadCount) {
+            if (!thread.IsAlive) {
+                Debug.Log(runCount);
                 Achonor.Function.CallCallback(callback, result);
                 Achonor.Scheduler.Stop("WaitSearchFinished");
             }
