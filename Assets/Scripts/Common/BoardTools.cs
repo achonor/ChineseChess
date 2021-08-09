@@ -17,6 +17,56 @@ namespace Assets.Scripts.Common {
         private static Vector2Byte[,] MaFootPointArray = new Vector2Byte[90,90];
         private static List<Vector2Byte>[,] MovePointsList = new List<Vector2Byte>[32, 90];
 
+
+        /// <summary>
+        /// 除了士象其他棋子都会收影响的点
+        /// </summary>
+        public static List<Vector2Byte> AllAffectedPoints = new List<Vector2Byte>() {
+            new Vector2Byte(1, 0),
+            new Vector2Byte(0, 1),
+            new Vector2Byte(-1, 0),
+            new Vector2Byte(0, -1),
+        };
+        /// <summary>
+        /// 士受影响的点
+        /// </summary>
+        public static List<Vector2Byte> ShiAffectedPoints = new List<Vector2Byte>() {
+            new Vector2Byte(1, 1),
+            new Vector2Byte(-1, 1),
+            new Vector2Byte(-1, -1),
+            new Vector2Byte(1, -1),
+        };
+
+        /// <summary>
+        /// 象受影响的点
+        /// </summary>
+        public static List<Vector2Byte> XiangAffectedPoints = new List<Vector2Byte>() {
+            new Vector2Byte(1, 1),
+            new Vector2Byte(2, 2),
+            new Vector2Byte(-1, 1),
+            new Vector2Byte(-2, 2),
+            new Vector2Byte(-1, -1),
+            new Vector2Byte(-2, -2),
+            new Vector2Byte(1, -1),
+            new Vector2Byte(2, -2),
+        };
+
+        /// <summary>
+        /// 马受影响的点
+        /// </summary>
+        public static List<Vector2Byte> MaAffectedPoints = new List<Vector2Byte>() {
+            new Vector2Byte(2, 1),
+            new Vector2Byte(1, 2),
+            new Vector2Byte(-1, 2),
+            new Vector2Byte(-2, 1),
+            new Vector2Byte(-2, -1),
+            new Vector2Byte(-1, -2),
+            new Vector2Byte(1, -2),
+            new Vector2Byte(2, -1),
+        };
+
+
+
         /// <summary>
         /// 初始化所有预处理数据
         /// </summary>
@@ -129,6 +179,9 @@ namespace Assets.Scripts.Common {
         }
 
         public static Vector2Byte GetPointByKey(sbyte pointKey) {
+            if (90 <= pointKey || pointKey < 0) {
+                Debug.Log("" + pointKey);
+            }
             return PointByKeyArray[pointKey];
         }
 

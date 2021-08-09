@@ -1,4 +1,5 @@
 using Assets.Scripts;
+using Assets.Scripts.Common;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -79,52 +80,43 @@ public class SearchChart {
         if (null == chart.GetChessPoint((sbyte)(chart.IsRedPlayChess ? 0 : 16))) {
             return result;
         }
-        
-        for (sbyte i = 0; i < 16; i++) {
-            sbyte chessID = (sbyte)(i | (chart.IsRedPlayChess ? SByte_0 : SByte_16));
-            List<Vector2Byte> movePoints = chart.GetMovePoints(chessID);
 
-            for (int k = 0; k < movePoints.Count; k++) {
-                runCount++;
-                Record record0 = chart.Records[0];
-                //if (record0.AChessID == 22 && record0.APoint == 19 && record0.BPoint == 27 && chessID == 7) {
-                //    record0.AChessID |= 0;
-                //}
-                Chart newChart = chart;
-                newChart.MoveChess(chessID, movePoints[k]);
-                string newChartKey = newChart.GetChartKey();
-                Step step;
-                if (!UpdateVisited(newChartKey, lastDepth)) {
-                    //已经计算过更深的
-                    newChart.BackStep();
-                    continue;
+        List<MovePoint> movePoints = chart.GetAllMovePoints(chart.IsRedPlayChess);
+        for (int k = 0; k < movePoints.Count; k++) {
+            runCount++;
+            MovePoint move = movePoints[k];
+            Vector2Byte point = BoardTools.GetPointByKey(move.PointKey);
+            chart.MoveChess(move.ChessID, point);
+            string newChartKey = chart.GetChartKey();
+
+            Step step;
+            if (!UpdateVisited(newChartKey, lastDepth)) {
+                //已经计算过更深的
+                chart.BackStep();
+                continue;
+            } else {
+                if (lastDepth <= 0) {
+                    //直接计算分数，不能往下搜索了
+                    step = new Step();
+                    step.SetValue(move.ChessID, point, lastDepth, chart.GetScore(!chart.IsRedPlayChess));
                 } else {
-                    if (lastDepth <= 0) {
-                        //直接计算分数，不能往下搜索了
-                        step = new Step();
-                        step.SetValue(chessID, movePoints[k], lastDepth, newChart.GetScore(!newChart.IsRedPlayChess));
-                    } else {
-                        step = DfsSearch(newChart, (byte)(lastDepth - 1), !isMax, alpha, beta);
-                        step.mostScore *= -1;
-                    }
+                    step = DfsSearch(chart, (byte)(lastDepth - 1), !isMax, alpha, beta);
+                    step.mostScore *= -1;
                 }
-                newChart.BackStep();
+            }
+            chart.BackStep();
 
-                if (result.mostScore < step.mostScore) {
-                    result.SetValue(chessID, movePoints[k], lastDepth, step.mostScore);
-                    //newChart.PrintStep();
-                }
-
-                if (isMax) {
-                    alpha = Math.Max(alpha, step.mostScore);
-                } else {
-                    beta = Math.Min(beta, -step.mostScore);
-                }
-                if (beta <= alpha) {
-                    //剪枝
-                    return result;
-                }
-
+            if (result.mostScore < step.mostScore) {
+                result.SetValue(move.ChessID, point, lastDepth, step.mostScore);
+            }
+            if (isMax) {
+                alpha = Math.Max(alpha, step.mostScore);
+            } else {
+                beta = Math.Min(beta, -step.mostScore);
+            }
+            if (beta <= alpha) {
+                //剪枝
+                return result;
             }
         }
         return result;

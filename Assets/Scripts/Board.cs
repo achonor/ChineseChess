@@ -185,7 +185,7 @@ namespace Assets.Scripts {
             }
             bool isRedChess = BoardTools.IsRedChess(chessID);
             Chart chart = Chart.Clone(mChart);
-            chart.MoveChess(chessID, point);
+            chart.MoveChess(chessID, point, true);
             //判断是否被将军
             if (chart.IsJiangJun(!isRedChess)) {
                 //对面帅的位置

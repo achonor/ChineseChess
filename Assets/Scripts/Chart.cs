@@ -8,18 +8,6 @@ using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Assets.Scripts {
-
-    /// <summary>
-    /// 记录操作的类
-    /// 表示A棋子从A点走到B点吃掉了B棋子
-    /// </summary>
-    public class Record {
-        public sbyte AChessID;
-        public sbyte APoint;
-        public sbyte BChessID;
-        public sbyte BPoint;
-    }
-
     /// <summary>
     /// 当前棋谱
     /// </summary>
@@ -59,6 +47,10 @@ namespace Assets.Scripts {
 
         public int[] ChartStatusY = new int[10];
 
+        /// <summary>
+        /// 所有棋子的可移动范围
+        /// </summary>
+        public List<MovePoint>[] AllMovePoints = new List<MovePoint>[32];
 
         /// <summary>
         /// 是否红方下
@@ -124,14 +116,13 @@ namespace Assets.Scripts {
             ChessPointKeys[29] = BoardTools.GetPointKey(new Vector2Byte(4, 6));
             ChessPointKeys[30] = BoardTools.GetPointKey(new Vector2Byte(2, 6));
             ChessPointKeys[31] = BoardTools.GetPointKey(new Vector2Byte(0, 6));
-
-            UpdatePointKeyDict();
+            UpdateChart();
         }
 
         public Chart(Chart chart) {
             mIsRedPlayChess = chart.mIsRedPlayChess;
             Array.Copy(chart.ChessPointKeys, ChessPointKeys, ChessPointKeys.Length);
-            UpdatePointKeyDict();
+            UpdateChart();
         }
 
         public static Chart Clone(Chart chart) {
@@ -158,9 +149,9 @@ namespace Assets.Scripts {
 
 
         /// <summary>
-        /// 更新字典
+        /// 更新
         /// </summary>
-        public void UpdatePointKeyDict() {
+        public void UpdateChart() {
             if (null == PointKey2ChessDict) {
                 PointKey2ChessDict = new Dictionary<sbyte, sbyte>();
             }
@@ -180,6 +171,127 @@ namespace Assets.Scripts {
                     Vector2Byte point = new Vector2Byte(i, k);
                     SetChartStatus(point, -1 != GetChessByPointKey(BoardTools.GetPointKey(point)));
                 }
+            }
+            for (sbyte i = 0; i < 32; i++) {
+                AllMovePoints[i] = new List<MovePoint>();
+                UpdateChessMovePoints(i);
+            }
+        }
+
+        /// <summary>
+        /// 获取收影响的点
+        /// </summary>
+        /// <param name="point"></param>
+        /// <returns></returns>
+        public void CalcAllAffectedChess(sbyte pointKey, HashSet<sbyte> result) {
+            Vector2Byte point = BoardTools.GetPointByKey(pointKey);
+            for (int i = 0; i < BoardTools.AllAffectedPoints.Count; i++) {
+                Vector2Byte newPoint = point + BoardTools.AllAffectedPoints[i];
+                if (!BoardTools.IsInBoard(newPoint)) {
+                    continue;
+                }
+                sbyte chessID;
+                if (!GetChessByPoint(newPoint, out chessID)) {
+                    continue;
+                }
+                if (ChessType.Xiang == BoardTools.GetChessType(chessID)) {
+                    continue;
+                }
+                ChessType chessType = BoardTools.GetChessType(chessID);
+                if ((ChessType.Shuai == chessType || ChessType.Shi == chessType) && (!BoardTools.IsInJiuGong(point))){
+                    continue;    
+                }
+                bool isRedChess = BoardTools.IsRedChess(chessID);
+                if (ChessType.Bing == chessType && ((isRedChess && point.y < newPoint.y) || (!isRedChess && newPoint.y < point.y))) {
+                    continue;
+                }
+                result.Add(chessID);
+            }
+            for (int i = 0; i < BoardTools.ShiAffectedPoints.Count; i++) {
+                Vector2Byte newPoint = point + BoardTools.ShiAffectedPoints[i];
+                if (!BoardTools.IsInBoard(newPoint) || !BoardTools.IsInJiuGong(point) || !BoardTools.IsInJiuGong(newPoint)) {
+                    continue;
+                }
+                sbyte chessID;
+                if (!GetChessByPoint(newPoint, out chessID)) {
+                    continue;
+                }
+                if (ChessType.Shi != BoardTools.GetChessType(chessID)) {
+                    continue;
+                }
+                result.Add(chessID);
+            }
+
+            for (int i = 0; i < BoardTools.XiangAffectedPoints.Count; i++) {
+                Vector2Byte newPoint = point + BoardTools.XiangAffectedPoints[i];
+                if (!BoardTools.IsInBoard(newPoint)) {
+                    continue;
+                }
+                sbyte chessID;
+                if (!GetChessByPoint(newPoint, out chessID)) {
+                    continue;
+                }
+                if (ChessType.Xiang != BoardTools.GetChessType(chessID)) {
+                    continue;
+                }
+                bool isRedChess = BoardTools.IsRedChess(chessID);
+                if ((isRedChess && (!BoardTools.IsInRedRange(point))) || (!isRedChess && BoardTools.IsInRedRange(point))){
+                    continue;
+                }
+                result.Add(chessID);
+            }
+            for (int i = 0; i < BoardTools.MaAffectedPoints.Count; i++) {
+                Vector2Byte newPoint = point + BoardTools.MaAffectedPoints[i];
+                if (!BoardTools.IsInBoard(newPoint)) {
+                    continue;
+                }
+                sbyte chessID;
+                if (!GetChessByPoint(newPoint, out chessID)) {
+                    continue;
+                }
+                if (ChessType.Ma != BoardTools.GetChessType(chessID)) {
+                    continue;
+                }
+                result.Add(chessID);
+            }
+            for (int i = 0; i < 19; i++) {
+                Vector2Byte newPoint;
+                if (i < 9) {
+                    newPoint = new Vector2Byte(i, point.y);
+                } else {
+                    newPoint = new Vector2Byte(point.x, i - 9);
+                }
+                sbyte chessID;
+                if (!GetChessByPoint(newPoint, out chessID)) {
+                    continue;
+                }
+                ChessType chessType = BoardTools.GetChessType(chessID);
+                if (chessType != ChessType.Pao && chessType != ChessType.Che) {
+                    continue;
+                }
+                int rangeCount = GetLineChessCount(point, newPoint);
+                if (chessType == ChessType.Pao) {
+                    if (2 <= rangeCount) {
+                        continue;
+                    }
+                }
+                if (chessType == ChessType.Che) {
+                    if (1 <= rangeCount) {
+                        continue;
+                    }
+                }
+                result.Add(chessID);
+            }
+        }
+
+        public void UpdateChessMovePoints(sbyte chessID) {
+            AllMovePoints[chessID].Clear();
+            List<Vector2Byte> points = GetMovePoints(chessID);
+            for (sbyte k = 0; k < points.Count; k++) {
+                AllMovePoints[chessID].Add(new MovePoint() {
+                    ChessID = chessID,
+                    PointKey = BoardTools.GetPointKey(points[k])
+                });
             }
         }
 
@@ -369,23 +481,21 @@ namespace Assets.Scripts {
             if (null == GetChessPoint(chessID)) {
                 return 0;
             }
-            int canMoveCount = GetMovePoints(chessID, false).Count;
-            int selfChessCount = GetInRangeChess(chessID, isRedChess).Count;
-            int enemyChessCount = GetInRangeChess(chessID, !isRedChess).Count;
+            int canMoveCount = AllMovePoints[chessID].Count;
             if (chessType == ChessType.Shuai) {
-                return 10000 + canMoveCount * 2 + selfChessCount * 10 + enemyChessCount * 20;
+                return 10000 + canMoveCount * 2;
             } else if (chessType == ChessType.Shi) {
-                return 250 + canMoveCount * 2 + selfChessCount * 10 + enemyChessCount * 20;
+                return 250 + canMoveCount * 2;
             } else if (chessType == ChessType.Xiang) {
-                return 200 + canMoveCount * 2 + selfChessCount * 20 + enemyChessCount * 50;
+                return 200 + canMoveCount * 2;
             } else if (chessType == ChessType.Ma) {
-                return 450 + ((32 - PointKey2ChessDict.Count) * 4) + canMoveCount * 20 + selfChessCount * 20 + enemyChessCount * 50;
+                return 450 + ((32 - PointKey2ChessDict.Count) * 4);
             } else if (chessType == ChessType.Che) {
-                return 1000 + canMoveCount * 8 + selfChessCount * 20 + enemyChessCount * 50;
+                return 1000 + canMoveCount * 8;
             } else if (chessType == ChessType.Pao) {
-                return 500 + canMoveCount * 8 + selfChessCount * 20 + enemyChessCount * 50;
+                return 500 + canMoveCount * 8;
             } else {
-                return 100 + canMoveCount * 20 + selfChessCount * 20 + enemyChessCount * 50;
+                return 100 + canMoveCount * 20;
             }
         }
 
@@ -394,8 +504,8 @@ namespace Assets.Scripts {
         /// </summary>
         /// <param name="chessID"></param>
         /// <param name="point"></param>
-        public void MoveChess(sbyte chessID, Vector2Byte point) {
-            sbyte oldChessID = -1;
+        public void MoveChess(sbyte chessID, Vector2Byte point, bool showLog = false) {
+            sbyte oldChessID;
             if (GetChessByPoint(point, out oldChessID)) {
                 //吃掉棋子
                 ChessPointKeys[oldChessID] = -1;
@@ -408,8 +518,8 @@ namespace Assets.Scripts {
             record.BPoint = BoardTools.GetPointKey(point);
             RecordsStack.Push(record);
             //更新状态
-            SetChartStatus(ChessPointKeys[chessID], false);
-            SetChartStatus(point, true);
+            SetChartStatus(record.APoint, false);
+            SetChartStatus(record.BPoint, true);
 
             //移动棋子
             PointKey2ChessDict.Remove(ChessPointKeys[chessID]);
@@ -422,6 +532,18 @@ namespace Assets.Scripts {
             ChessType chessType = BoardTools.GetChessType(record.AChessID);
             mZobristKey ^= ZobristValue[isRedChess ? 0 : 1, (int)chessType, record.APoint];
             mZobristKey ^= ZobristValue[isRedChess ? 0 : 1, (int)chessType, record.BPoint];
+
+            //更新可行走的棋子
+            HashSet<sbyte> needUpdateChesss = new HashSet<sbyte>();
+            needUpdateChesss.Add(chessID);
+            CalcAllAffectedChess(record.APoint, needUpdateChesss);
+            CalcAllAffectedChess(record.BPoint, needUpdateChesss);
+            foreach (sbyte value in needUpdateChesss) {
+                UpdateChessMovePoints(value);
+            }
+            if (showLog) {
+                Debug.Log("需要更新的棋子：" + needUpdateChesss.ToArray().ToString("|"));
+            }
         }
 
         /// <summary>
@@ -450,6 +572,14 @@ namespace Assets.Scripts {
             ChessType chessType = BoardTools.GetChessType(record.AChessID);
             mZobristKey ^= ZobristValue[isRedChess ? 0 : 1, (int)chessType, record.APoint];
             mZobristKey ^= ZobristValue[isRedChess ? 0 : 1, (int)chessType, record.BPoint];
+
+            //更新可行走的棋子
+            HashSet<sbyte> needUpdateChesss = new HashSet<sbyte>();
+            CalcAllAffectedChess(record.APoint, needUpdateChesss);
+            CalcAllAffectedChess(record.BPoint, needUpdateChesss);
+            foreach (sbyte value in needUpdateChesss) {
+                UpdateChessMovePoints(value);
+            }
             return true;
         }
 
@@ -465,12 +595,24 @@ namespace Assets.Scripts {
             Debug.Log(printText.ToString());
         }
 
+        public List<MovePoint> GetAllMovePoints(bool isRedChess) {
+            List<MovePoint> result = new List<MovePoint>();
+            for (sbyte i = 0; i < 16; i++) {
+                sbyte chessID = (sbyte)(i + (isRedChess ? 0 : 16));
+                if (-1 == ChessPointKeys[chessID]) {
+                    continue;
+                }
+                result.AddRange(AllMovePoints[chessID]);
+            }
+            return result;
+        }
+
         /// <summary>
         /// 获取可以走的点
         /// </summary>
         /// <param name="chessID"></param>
         /// <returns></returns>
-        public List<Vector2Byte> GetMovePoints(sbyte chessID, bool isTrue = true) {
+        public List<Vector2Byte> GetMovePoints(sbyte chessID) {
             List<Vector2Byte> result = new List<Vector2Byte>();
             ChessType chessType = BoardTools.GetChessType(chessID);
             sbyte pointKey = ChessPointKeys[chessID];
@@ -551,16 +693,7 @@ namespace Assets.Scripts {
             Vector2Byte point = BoardTools.GetPointByKey(pointKey);
             Vector2Byte enemyShuaiPoint = chart.GetChessPoint((sbyte)(chessID ^ 16));
             if (null != enemyShuaiPoint && enemyShuaiPoint.x == point.x) {
-                bool canFly = true;
-                int startY = Math.Min(point.y, enemyShuaiPoint.y);
-                int endY = Math.Max(point.y, enemyShuaiPoint.y);
-                for (int i = startY + 1; i < endY; i++) {
-                    if (chart.PointHasChess(new Vector2Byte(point.x, i))) {
-                        canFly = false;
-                        break;
-                    }
-                }
-                if (canFly) {
+                if (chart.GetLineChessCount(point, enemyShuaiPoint) <= 0) {
                     result.Add(enemyShuaiPoint);
                 }
             }
