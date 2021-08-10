@@ -65,6 +65,7 @@ public class SearchChart {
                     }
                     curDepth++;
                 }
+                Debug.Log("ËÑË÷Éî¶È£º" + (curDepth + 1));
             } catch (Exception ex) {
                 Debug.LogError(ex.ToString());
             }

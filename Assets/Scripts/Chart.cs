@@ -448,18 +448,8 @@ namespace Assets.Scripts {
             int addScore = BoardTools. GetChessPointScore(chessID, GetChessPoint(chessID));
             if (chessType == ChessType.Shuai) {
                 return 10000 + addScore;
-            } else if (chessType == ChessType.Shi) {
-                return 150 + addScore;
-            } else if (chessType == ChessType.Xiang) {
-                return 150 + addScore;
-            } else if (chessType == ChessType.Ma) {
-                return 230 + ((32 - PointKey2ChessDict.Count) * 2) + addScore;
-            } else if (chessType == ChessType.Che) {
-                return 500 + addScore;
-            } else if (chessType == ChessType.Pao) {
-                return 250 + addScore;
             } else {
-                return 100 + addScore;
+                return addScore;
             }
         }
 
