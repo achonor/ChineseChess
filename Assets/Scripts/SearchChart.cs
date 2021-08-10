@@ -11,13 +11,13 @@ using UnityEngine;
 /// 搜索最优走法
 /// </summary>
 public class SearchChart {
-    public const sbyte SByte_0 = (sbyte)0;
-    public const sbyte SByte_1 = (sbyte)1;
-    public const sbyte SByte_16 = (sbyte)16;
+    public const int SByte_0 = 0;
+    public const int SByte_1 = 1;
+    public const int SByte_16 = 16;
 
     public class Step {
-        public sbyte chessID;
-        public Vector2Byte point;
+        public int chessID;
+        public int point;
 
         public byte searchDepth;
         /// <summary>
@@ -25,7 +25,7 @@ public class SearchChart {
         /// </summary>
         public int mostScore = -100000;
 
-        public void SetValue(sbyte _chessID, Vector2Byte _point, byte _searchDepth, int _mostScore) {
+        public void SetValue(int _chessID, int _point, byte _searchDepth, int _mostScore) {
             this.chessID = _chessID;
             this.point = _point;
             this.searchDepth = _searchDepth;
@@ -35,11 +35,11 @@ public class SearchChart {
     /// <summary>
     /// 搜索过的状态标记,byte表示搜索深度
     /// </summary>
-    private static Dictionary<string, byte> mVisited = new Dictionary<string, byte>();
+    private static Dictionary<ulong, byte> mVisited = new Dictionary<ulong, byte>();
 
     private static Dictionary<string, int> mVisitedScore = new Dictionary<string, int>();
 
-    public static bool UpdateVisited(string chartKey, byte depth) {
+    public static bool UpdateVisited(ulong chartKey, byte depth) {
         lock (mVisited) {
             if (mVisited.ContainsKey(chartKey) && depth <= mVisited[chartKey]) {
                 return false;
@@ -49,13 +49,22 @@ public class SearchChart {
         return true;
     }
     private static int runCount = 0;
-    public static void Search(Chart chart, byte lastDepth, Action<Step> callback) {
+    public static void Search(Chart chart, Action<Step> callback) {
         runCount = 0;
         mVisited.Clear();
         Step result = null;
         Thread thread = new Thread(()=> {
             try {
-                result = DfsSearch(chart, lastDepth, true, int.MinValue, int.MaxValue);
+                byte curDepth = 1;
+                long startTime = Achonor.Function.GetLocaLTime();
+                while (curDepth <= 64) {
+                    result = DfsSearch(chart, curDepth, true, int.MinValue, int.MaxValue);
+                    long newTime = Achonor.Function.GetLocaLTime();
+                    if (10000 < (newTime - startTime)) {
+                        break;
+                    }
+                    curDepth++;
+                }
             } catch (Exception ex) {
                 Debug.LogError(ex.ToString());
             }
@@ -65,7 +74,8 @@ public class SearchChart {
         // 等待搜索完成
         Achonor.Scheduler.CreateScheduler("WaitSearchFinished", 1.0f, 0, 0.1f, () => {
             if (!thread.IsAlive) {
-                Debug.Log(runCount);
+                Debug.Log("搜索局面数：" + runCount);
+                Debug.LogFormat("棋子：{0}走到{1}", result.chessID, result.point);
                 Achonor.Function.CallCallback(callback, result);
                 Achonor.Scheduler.Stop("WaitSearchFinished");
             }
@@ -76,7 +86,7 @@ public class SearchChart {
     public static Step DfsSearch(Chart chart, byte lastDepth, bool isMax, int alpha, int beta) {
         Step result = new Step();
         result.searchDepth = lastDepth;
-        if (null == chart.GetChessPoint((sbyte)(chart.IsRedPlayChess ? 0 : 16))) {
+        if (-1 == chart.GetChessPoint((chart.IsRedPlayChess ? 0 : 16))) {
             return result;
         }
 
@@ -84,9 +94,8 @@ public class SearchChart {
         for (int k = 0; k < movePoints.Count; k++) {
             runCount++;
             MovePoint move = movePoints[k];
-            Vector2Byte point = BoardTools.GetPointByKey(move.PointKey);
-            chart.MoveChess(move.ChessID, point);
-            string newChartKey = chart.GetChartKey();
+            chart.MoveChess(move.ChessID, move.PointKey);
+            ulong newChartKey = chart.GetChartKey();
 
             Step step;
             if (!UpdateVisited(newChartKey, lastDepth)) {
@@ -97,7 +106,7 @@ public class SearchChart {
                 if (lastDepth <= 0) {
                     //直接计算分数，不能往下搜索了
                     step = new Step();
-                    step.SetValue(move.ChessID, point, lastDepth, chart.GetScore(!chart.IsRedPlayChess));
+                    step.SetValue(move.ChessID, move.PointKey, lastDepth, chart.GetScore(!chart.IsRedPlayChess));
                 } else {
                     step = DfsSearch(chart, (byte)(lastDepth - 1), !isMax, alpha, beta);
                     step.mostScore *= -1;
@@ -106,7 +115,7 @@ public class SearchChart {
             chart.BackStep();
 
             if (result.mostScore < step.mostScore) {
-                result.SetValue(move.ChessID, point, lastDepth, step.mostScore);
+                result.SetValue(move.ChessID, move.PointKey, lastDepth, step.mostScore);
             }
             if (isMax) {
                 alpha = Math.Max(alpha, step.mostScore);

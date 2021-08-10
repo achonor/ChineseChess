@@ -8,8 +8,8 @@ using UnityEngine;
 /// 表示A棋子从A点走到B点吃掉了B棋子
 /// </summary>
 public class Record {
-    public sbyte AChessID;
-    public sbyte APoint;
-    public sbyte BChessID;
-    public sbyte BPoint;
+    public int AChessID;
+    public int APoint;
+    public int BChessID;
+    public int BPoint;
 }

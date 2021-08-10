@@ -26,7 +26,7 @@ namespace Assets.Scripts {
         private GameObject mNewPointEffect = null;
         private GameObject mLastPointEffect = null;
 
-        private sbyte SelectedChessID = -1;
+        private int SelectedChessID = -1;
         private ChessBase SelectedChess {
             get {
                 return GetChess(SelectedChessID);
@@ -43,27 +43,31 @@ namespace Assets.Scripts {
         protected void Start() {
             SetChart(new Chart());
             //生成Collider
-            for (sbyte i = 0; i < 90; i++) {
-                GameObject gameObject = new GameObject(i.ToString());
+            for (int i = 0; i < 90; i++) {
+                int point = BoardTools.GetPointByPosition((i / 10) + 3, (i % 10) + 3);
+                GameObject gameObject = new GameObject(point.ToString());
                 gameObject.transform.parent = mColliderParent;
                 gameObject.layer = LayerMask.NameToLayer("BoardPoint");
-                gameObject.transform.localPosition = BoardTools.PointToPosition(BoardTools.GetPointByKey(i));
+                gameObject.transform.localPosition = (Vector2)BoardTools.PointToPosition(point);
                 BoxCollider2D boxCollider = gameObject.AddComponent<BoxCollider2D>();
                 boxCollider.size = new Vector2(0.9f, 0.9f);
             }
         }
 
-        private sbyte LastPointKey = -1;
+        private int LastPointKey = -1;
         protected void Update() {
             if (Input.GetMouseButtonDown(0)) {
                 //射线检测
                 Vector3 worldPos = mMainCamera.ScreenToWorldPoint(Input.mousePosition);
                 RaycastHit2D hit = Physics2D.Raycast(worldPos, Vector2.zero, mMainCamera.farClipPlane);
                 if (null != hit.collider && !mIsChessMoving) {
-                    sbyte pointKey = sbyte.Parse(hit.collider.name);
+                    int pointKey = int.Parse(hit.collider.name);
                     ClickPoint(pointKey);
+                    if (-1 != mChart.GetChessByPoint(pointKey)) {
+                        Debug.Log("棋子评分：" + mChart.GetChessScore(mChart.GetChessByPoint(pointKey)));
+                    }
                     if (0 <= LastPointKey) {
-                        Debug.Log("中间棋子数量：" + mChart.GetLineChessCount(BoardTools.GetPointByKey(pointKey), BoardTools.GetPointByKey(LastPointKey)));
+                        Debug.Log("中间棋子数量：" + mChart.GetLineChessCount(pointKey, LastPointKey));
                         LastPointKey = -1;
                     } else {
                         LastPointKey = pointKey;
@@ -82,16 +86,16 @@ namespace Assets.Scripts {
         public void SetChart(Chart chart) {
             mChart = chart;
             //更新棋子位置
-            for (sbyte i = 0; i < AllChess.Count; i++) {
-                Vector2Byte point = mChart.GetChessPoint(i);
-                AllChess[i].SetDeath(null == point);
-                if (null != point) {
+            for (int i = 0; i < AllChess.Count; i++) {
+                int point = mChart.GetChessPoint(i);
+                AllChess[i].SetDeath(-1 == point);
+                if (-1 != point) {
                     AllChess[i].SetPosPoint(point);
                 }
             }
         }
 
-        public ChessBase GetChess(sbyte chessID) {
+        public ChessBase GetChess(int chessID) {
             if (AllChess.Count <= chessID || chessID < 0) {
                 return null;
             }
@@ -102,36 +106,11 @@ namespace Assets.Scripts {
         /// 点击位置
         /// </summary>
         /// <param name="pointKey"></param>
-        protected void ClickPoint(sbyte pointKey) {
-            Vector2Byte point = BoardTools.GetPointByKey(pointKey);
-            //test
-            //sbyte testChessID = -1;
-            //if (mChart.GetChessByPoint(point, out testChessID)) {
-            //    bool isRedChess = BoardTools.IsRedChess(testChessID);
-            //    List<sbyte> selfChesss = mChart.GetInRangeChess(testChessID, isRedChess);
-            //    List<sbyte> enemyChesss = mChart.GetInRangeChess(testChessID, !isRedChess);
-            //    StringBuilder logText = new StringBuilder();
-            //    logText.Append("我方棋子数量 : ");
-            //    logText.Append(selfChesss.Count);
-            //    for (int i = 0; i < selfChesss.Count; i++) {
-            //        logText.Append("|" + selfChesss[i]);
-            //    }
-            //    Debug.Log(logText.ToString());
-
-            //    logText = new StringBuilder();
-            //    logText.Append("敌方棋子数量 : ");
-            //    logText.Append(enemyChesss.Count);
-            //    for (int i = 0; i < enemyChesss.Count; i++) {
-            //        logText.Append("|" + enemyChesss[i]);
-            //    }
-            //    Debug.Log(logText.ToString());
-            //}
-            //end test
-
+        protected void ClickPoint(int pointKey) {
             if (-1 == SelectedChessID) {
                 //没有选中的棋
-                sbyte chessID = -1;
-                if (!mChart.GetChessByPoint(point, out chessID)) {
+                int chessID = -1;
+                if (!mChart.GetChessByPoint(pointKey, out chessID)) {
                     //没有选中棋，点的还是空白的地方
                     return;
                 }
@@ -143,15 +122,15 @@ namespace Assets.Scripts {
                 //选中棋子
                 SelectChess(chessID);
             } else{
-                sbyte chessID = -1;
-                if (!mChart.GetChessByPoint(point, out chessID)) {
+                int chessID = -1;
+                if (!mChart.GetChessByPoint(pointKey, out chessID)) {
                     //判断这个点能不能下
-                    if (CheckCanMove(SelectedChessID, point)) {
+                    if (CheckCanMove(SelectedChessID, pointKey)) {
                         //移动
-                        MoveChess(SelectedChessID, point);
+                        MoveChess(SelectedChessID, pointKey);
                     } else {
                         //不能移动
-                        PlayCantMove(SelectedChessID, point);
+                        PlayCantMove(SelectedChessID, pointKey);
                     }
                 } else {
                     if (BoardTools.IsRedChess(SelectedChessID) == BoardTools.IsRedChess(chessID)) {
@@ -159,11 +138,11 @@ namespace Assets.Scripts {
                         SelectChess(chessID);
                     }else{
                         //判断能不能吃
-                        if (CheckCanMove(SelectedChessID, point)) {
-                            MoveChess(SelectedChessID, point);
+                        if (CheckCanMove(SelectedChessID, pointKey)) {
+                            MoveChess(SelectedChessID, pointKey);
                         } else {
                             //不能移动
-                            PlayCantMove(SelectedChessID, point);
+                            PlayCantMove(SelectedChessID, pointKey);
                         }
                     }
                 }
@@ -171,11 +150,11 @@ namespace Assets.Scripts {
         }
 
 
-        protected bool CheckCanMove(sbyte chessID, Vector2Byte point) {
-            List<Vector2Byte> points = mChart.GetMovePoints(chessID);
+        protected bool CheckCanMove(int chessID, int point) {
+            List<int> points = mChart.GetMovePoints(chessID);
             bool canMove = false;
             for (int i = 0; i < points.Count; i++) {
-                if (point.IsEqules(points[i])) {
+                if (point == points[i]) {
                     canMove = true;
                     break;
                 }
@@ -189,15 +168,15 @@ namespace Assets.Scripts {
             //判断是否被将军
             if (chart.IsJiangJun(!isRedChess)) {
                 //对面帅的位置
-                Vector2Byte enemyShuaiPoint = chart.GetShuaiPoint(!isRedChess);
-                if (point.x != enemyShuaiPoint.x || point.y != enemyShuaiPoint.y) {
+                int enemyShuaiPoint = chart.GetShuaiPoint(!isRedChess);
+                if ((point >> 4) != (enemyShuaiPoint >> 4) || (point & 0xF) != (enemyShuaiPoint & 0xF)) {
                     return false;
                 }
             }
             return true;
         }
 
-        protected void SelectChess(sbyte chessID) {
+        protected void SelectChess(int chessID) {
             RemoveMovePointEffects();
             if (-1 != SelectedChessID) {
                 SelectedChess.GetComponent<Animator>().Play("UnSelected", 0, 0);
@@ -206,33 +185,33 @@ namespace Assets.Scripts {
             SelectedChessID = chessID;
             SelectedChess.GetComponent<Animator>().Play("Selected", 0, 0);
             //显示可以到达的位置
-            List<Vector2Byte> points = mChart.GetMovePoints(SelectedChessID);
+            List<int> points = mChart.GetMovePoints(SelectedChessID);
             for (int i = 0; i < points.Count; i++) {
                 AddMovePointEffect(points[i]);
             }
         }
 
-        protected void AddMovePointEffect(Vector2Byte point) {
+        protected void AddMovePointEffect(int point) {
             GameObject go = PrefabManager.Instance.LoadPrefab("Prefabs/CanMovedPoint");
             go.SetActive(true);
             go.transform.parent = mEffectParent;
-            go.transform.position = BoardTools.PointToPosition(point);
+            go.transform.position = (Vector2)BoardTools.PointToPosition(point);
             mAllMovePointEffect.Add(go);
         }
 
-        protected void AddLastPointEffect(Vector2Byte point) {
+        protected void AddLastPointEffect(int point) {
             GameObject go = PrefabManager.Instance.LoadPrefab("Prefabs/LastPoint");
             go.SetActive(true);
             go.transform.parent = mEffectParent;
-            go.transform.position = BoardTools.PointToPosition(point);
+            go.transform.position = (Vector2)BoardTools.PointToPosition(point);
             mLastPointEffect = go;
         }
 
-        protected void AddNewPointEffect(Vector2Byte point) {
+        protected void AddNewPointEffect(int point) {
             GameObject go = PrefabManager.Instance.LoadPrefab("Prefabs/NewPoint");
             go.SetActive(true);
             go.transform.parent = mEffectParent;
-            go.transform.position = BoardTools.PointToPosition(point);
+            go.transform.position = (Vector2)BoardTools.PointToPosition(point);
             mNewPointEffect = go;
         }
 
@@ -276,15 +255,15 @@ namespace Assets.Scripts {
             }
         }
 
-        protected void MoveChess(sbyte chessID, Vector2Byte point, bool isMachine = false) {
+        protected void MoveChess(int chessID, int point, bool isMachine = false) {
             ChessBase chess = GetChess(chessID);
-            Vector2Byte lastPoint = mChart.GetChessPoint(chessID);
+            int lastPoint = mChart.GetChessPoint(chessID);
             //动画
             chess.GetComponent<Animator>().Play("UnSelected");
             //删除特效
             RemoveEffects();
             mIsChessMoving = true;
-            chess.transform.DOLocalMove(BoardTools.PointToPosition(point), 0.3f).OnComplete(()=> {
+            chess.transform.DOLocalMove((Vector2)BoardTools.PointToPosition(point), 0.3f).OnComplete(()=> {
                 mIsChessMoving = false;
                 //添加
                 AddLastPointEffect(lastPoint);
@@ -292,13 +271,13 @@ namespace Assets.Scripts {
 
                 if (!isMachine) {
                     //人机下棋
-                    SearchChart.Search(mChart, 4, (step) => {
+                    SearchChart.Search(mChart, (step) => {
                         MoveChess(step.chessID, step.point, true);
                     });
                 }
             });
 
-            sbyte oldChessID = -1;
+            int oldChessID = -1;
             if (mChart.GetChessByPoint(point, out oldChessID)) {
                 //吃子
                 GetChess(oldChessID).SetDeath(true);
@@ -319,7 +298,7 @@ namespace Assets.Scripts {
             }
         }
 
-        protected void PlayCantMove(sbyte chessID, Vector2Byte point) {
+        protected void PlayCantMove(int chessID, int point) {
             ChessBase chess = GetChess(chessID);
             chess.transform.DOShakePosition(0.5f, 0.02f);
         }

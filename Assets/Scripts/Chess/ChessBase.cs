@@ -35,7 +35,7 @@ public class ChessBase : BaseBehaviour {
     /// <summary>
     /// µ±«∞Œª÷√
     /// </summary>
-    public Vector2Byte PosPoint {
+    public int PosPoint {
         get;
         protected set;
     }
@@ -51,8 +51,8 @@ public class ChessBase : BaseBehaviour {
     }
 
 
-    public void SetPosPoint(Vector2Byte point) {
+    public void SetPosPoint(int point) {
         PosPoint = point;
-        transform.localPosition = BoardTools.PointToPosition(point);
+        transform.localPosition = (Vector2)BoardTools.PointToPosition(point);
     }
 }

@@ -8,6 +8,6 @@ using UnityEngine;
 /// </summary>
 public class MovePoint
 {
-    public sbyte ChessID;
-    public sbyte PointKey;
+    public int ChessID;
+    public int PointKey;
 }
