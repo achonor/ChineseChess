@@ -48,11 +48,6 @@ namespace Assets.Scripts {
         public int[] ChartStatusY = new int[10];
 
         /// <summary>
-        /// 所有棋子的可移动范围
-        /// </summary>
-        public List<MovePoint>[] AllMovePoints = new List<MovePoint>[32];
-
-        /// <summary>
         /// 是否红方下
         /// </summary>
         private bool mIsRedPlayChess = true;
@@ -172,10 +167,6 @@ namespace Assets.Scripts {
                     SetChartStatus(point, -1 != GetChessByPointKey(BoardTools.GetPointKey(point)));
                 }
             }
-            for (sbyte i = 0; i < 32; i++) {
-                AllMovePoints[i] = new List<MovePoint>();
-                UpdateChessMovePoints(i);
-            }
         }
 
         /// <summary>
@@ -281,17 +272,6 @@ namespace Assets.Scripts {
                     }
                 }
                 result.Add(chessID);
-            }
-        }
-
-        public void UpdateChessMovePoints(sbyte chessID) {
-            AllMovePoints[chessID].Clear();
-            List<Vector2Byte> points = GetMovePoints(chessID);
-            for (sbyte k = 0; k < points.Count; k++) {
-                AllMovePoints[chessID].Add(new MovePoint() {
-                    ChessID = chessID,
-                    PointKey = BoardTools.GetPointKey(points[k])
-                });
             }
         }
 
@@ -481,7 +461,7 @@ namespace Assets.Scripts {
             if (null == GetChessPoint(chessID)) {
                 return 0;
             }
-            int canMoveCount = AllMovePoints[chessID].Count;
+            int canMoveCount = GetMovePoints(chessID).Count;
             if (chessType == ChessType.Shuai) {
                 return 10000 + canMoveCount * 2;
             } else if (chessType == ChessType.Shi) {
@@ -532,18 +512,6 @@ namespace Assets.Scripts {
             ChessType chessType = BoardTools.GetChessType(record.AChessID);
             mZobristKey ^= ZobristValue[isRedChess ? 0 : 1, (int)chessType, record.APoint];
             mZobristKey ^= ZobristValue[isRedChess ? 0 : 1, (int)chessType, record.BPoint];
-
-            //更新可行走的棋子
-            HashSet<sbyte> needUpdateChesss = new HashSet<sbyte>();
-            needUpdateChesss.Add(chessID);
-            CalcAllAffectedChess(record.APoint, needUpdateChesss);
-            CalcAllAffectedChess(record.BPoint, needUpdateChesss);
-            foreach (sbyte value in needUpdateChesss) {
-                UpdateChessMovePoints(value);
-            }
-            if (showLog) {
-                Debug.Log("需要更新的棋子：" + needUpdateChesss.ToArray().ToString("|"));
-            }
         }
 
         /// <summary>
@@ -573,13 +541,6 @@ namespace Assets.Scripts {
             mZobristKey ^= ZobristValue[isRedChess ? 0 : 1, (int)chessType, record.APoint];
             mZobristKey ^= ZobristValue[isRedChess ? 0 : 1, (int)chessType, record.BPoint];
 
-            //更新可行走的棋子
-            HashSet<sbyte> needUpdateChesss = new HashSet<sbyte>();
-            CalcAllAffectedChess(record.APoint, needUpdateChesss);
-            CalcAllAffectedChess(record.BPoint, needUpdateChesss);
-            foreach (sbyte value in needUpdateChesss) {
-                UpdateChessMovePoints(value);
-            }
             return true;
         }
 
@@ -597,12 +558,15 @@ namespace Assets.Scripts {
 
         public List<MovePoint> GetAllMovePoints(bool isRedChess) {
             List<MovePoint> result = new List<MovePoint>();
-            for (sbyte i = 0; i < 16; i++) {
-                sbyte chessID = (sbyte)(i + (isRedChess ? 0 : 16));
-                if (-1 == ChessPointKeys[chessID]) {
-                    continue;
+            for (int i = 0; i < 16; i++) {
+                sbyte chessID = (sbyte)(BoardTools.ChessCheckOrder[i] + (isRedChess ? 0 : 16));
+                List<Vector2Byte> movePoints = GetMovePoints(chessID);
+                for (int k = 0; k < movePoints.Count; k++) {
+                    result.Add(new MovePoint() {
+                        ChessID = chessID,
+                        PointKey = BoardTools.GetPointKey(movePoints[k])
+                    });
                 }
-                result.AddRange(AllMovePoints[chessID]);
             }
             return result;
         }

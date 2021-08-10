@@ -7,6 +7,8 @@ using UnityEngine;
 
 namespace Assets.Scripts.Common {
     public static class BoardTools {
+        public static sbyte[] ChessCheckOrder = new sbyte[] { 7, 8, 5, 6, 9, 10, 3, 4, 1, 2, 11, 12, 13, 14, 15, 0 };
+
         private static byte[] BinaryOneCount = new byte[1024];
 
         private static Vector2[,] PointToPositionArray = new Vector2[9,10];

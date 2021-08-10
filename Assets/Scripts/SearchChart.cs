@@ -15,7 +15,6 @@ public class SearchChart {
     public const sbyte SByte_1 = (sbyte)1;
     public const sbyte SByte_16 = (sbyte)16;
 
-    public static sbyte[] ChessCheckOrder = new sbyte[] { 7, 8, 9, 10, 5, 6, 3, 4, 1, 2, 11, 12, 13, 14, 15, 0 };
     public class Step {
         public sbyte chessID;
         public Vector2Byte point;
