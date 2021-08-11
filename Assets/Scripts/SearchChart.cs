@@ -60,12 +60,12 @@ public class SearchChart {
                 while (curDepth <= 64) {
                     result = DfsSearch(chart, curDepth, true, int.MinValue, int.MaxValue);
                     long newTime = Achonor.Function.GetLocaLTime();
-                    if (10000 < (newTime - startTime)) {
+                    if (15000 < (newTime - startTime)) {
                         break;
                     }
                     curDepth++;
                 }
-                Debug.Log("搜索深度：" + (curDepth + 1));
+                Debug.LogFormat("搜索深度：{0} 搜索局面数：{1}", (curDepth + 1), runCount);
             } catch (Exception ex) {
                 Debug.LogError(ex.ToString());
             }
@@ -73,9 +73,8 @@ public class SearchChart {
         thread.Start();
         thread.IsBackground = true;
         // 等待搜索完成
-        Achonor.Scheduler.CreateScheduler("WaitSearchFinished", 1.0f, 0, 0.1f, () => {
+        Achonor.Scheduler.CreateScheduler("WaitSearchFinished", 1.0f, 0, 0.5f, () => {
             if (!thread.IsAlive) {
-                Debug.Log("搜索局面数：" + runCount);
                 Debug.LogFormat("棋子：{0}走到{1}", result.chessID, result.point);
                 Achonor.Function.CallCallback(callback, result);
                 Achonor.Scheduler.Stop("WaitSearchFinished");
@@ -90,14 +89,12 @@ public class SearchChart {
         if (-1 == chart.GetChessPoint((chart.IsRedPlayChess ? 0 : 16))) {
             return result;
         }
-
         List<MovePoint> movePoints = chart.GetAllMovePoints(chart.IsRedPlayChess);
         for (int k = 0; k < movePoints.Count; k++) {
             runCount++;
             MovePoint move = movePoints[k];
             chart.MoveChess(move.ChessID, move.PointKey);
             ulong newChartKey = chart.GetChartKey();
-
             Step step;
             if (!UpdateVisited(newChartKey, lastDepth)) {
                 //已经计算过更深的

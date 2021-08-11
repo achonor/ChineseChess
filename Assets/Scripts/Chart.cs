@@ -540,7 +540,7 @@ namespace Assets.Scripts {
         public List<MovePoint> GetAllMovePoints(bool isRedChess) {
             List<MovePoint> result = new List<MovePoint>();
             for (int i = 0; i < 16; i++) {
-                int chessID = (BoardTools.ChessCheckOrder[i] + (isRedChess ? 0 : 16));
+                int chessID = (i + (isRedChess ? 0 : 16));
                 List<int> movePoints = GetMovePoints(chessID);
                 for (int k = 0; k < movePoints.Count; k++) {
                     result.Add(new MovePoint() {
@@ -549,6 +549,31 @@ namespace Assets.Scripts {
                     });
                 }
             }
+            //排序
+            result.Sort((a, b) => {
+                int aChessID = GetChessByPoint(a.PointKey);
+                int bChessID = GetChessByPoint(b.PointKey);
+                if (aChessID != bChessID) {
+                    if (-1 == aChessID) {
+                        return 1;
+                    }
+                    if (-1 == bChessID) {
+                        return -1;
+                    }
+                    int aScore = GetChessScore(aChessID);
+                    int bScore = GetChessScore(bChessID);
+                    if (aScore != bScore) {
+                        return aScore < bScore ? 1 : -1;
+                    }
+                }
+                if (a.ChessID != b.ChessID) {
+                    return BoardTools.ChessCheckOrder[a.ChessID & 0xF] < BoardTools.ChessCheckOrder[b.ChessID & 0xF] ? -1 : 1;
+                }
+                if (a.PointKey != b.PointKey) {
+                    return a.PointKey < b.PointKey ? 1 : -1;
+                }
+                return 0;
+            });
             return result;
         }
 

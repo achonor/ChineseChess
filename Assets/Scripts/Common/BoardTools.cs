@@ -10,7 +10,7 @@ namespace Assets.Scripts.Common {
         /// <summary>
         /// 检测顺序
         /// </summary>
-        public static int[] ChessCheckOrder = new int[] { 7, 8, 5, 6, 9, 10, 3, 4, 1, 2, 11, 12, 13, 14, 15, 0 };
+        public static int[] ChessCheckOrder = new int[] { 15, 8, 9, 6, 7, 2, 3, 0, 1, 4, 5, 10, 11, 12, 13, 14};
         /// <summary>
         /// 棋子在某个点的分数分数加成
         /// </summary>
