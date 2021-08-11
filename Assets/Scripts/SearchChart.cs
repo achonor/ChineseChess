@@ -55,7 +55,7 @@ public class SearchChart {
         Step result = null;
         Thread thread = new Thread(()=> {
             try {
-                byte curDepth = 1;
+                byte curDepth = 3;
                 long startTime = Achonor.Function.GetLocaLTime();
                 while (curDepth <= 64) {
                     result = DfsSearch(chart, curDepth, true, int.MinValue, int.MaxValue);
@@ -91,7 +91,6 @@ public class SearchChart {
         }
         List<MovePoint> movePoints = chart.GetAllMovePoints(chart.IsRedPlayChess);
         for (int k = 0; k < movePoints.Count; k++) {
-            runCount++;
             MovePoint move = movePoints[k];
             chart.MoveChess(move.ChessID, move.PointKey);
             ulong newChartKey = chart.GetChartKey();
@@ -102,6 +101,7 @@ public class SearchChart {
                 continue;
             } else {
                 if (lastDepth <= 0) {
+                    runCount++;
                     //直接计算分数，不能往下搜索了
                     step = new Step();
                     step.SetValue(move.ChessID, move.PointKey, lastDepth, chart.GetScore(!chart.IsRedPlayChess));

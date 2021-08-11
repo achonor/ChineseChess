@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.UI;
 using DG.Tweening;
 
 namespace Assets.Scripts {
@@ -19,6 +20,11 @@ namespace Assets.Scripts {
 
         [SerializeField]
         private Transform mEffectParent;
+
+        [SerializeField]
+        private Toggle mRedAIToggle;
+        [SerializeField]
+        private Toggle mBlockAIToggle;
 
         private Chart mChart;
 
@@ -255,7 +261,7 @@ namespace Assets.Scripts {
             }
         }
 
-        protected void MoveChess(int chessID, int point, bool isMachine = false) {
+        protected void MoveChess(int chessID, int point) {
             ChessBase chess = GetChess(chessID);
             int lastPoint = mChart.GetChessPoint(chessID);
             //动画
@@ -269,10 +275,10 @@ namespace Assets.Scripts {
                 AddLastPointEffect(lastPoint);
                 AddNewPointEffect(point);
 
-                if (!isMachine) {
+                if ((mChart.IsRedPlayChess && mRedAIToggle.isOn) | ((!mChart.IsRedPlayChess) && mBlockAIToggle.isOn)) {
                     //人机下棋
                     SearchChart.Search(mChart, (step) => {
-                        MoveChess(step.chessID, step.point, true);
+                        MoveChess(step.chessID, step.point);
                     });
                 }
             });
