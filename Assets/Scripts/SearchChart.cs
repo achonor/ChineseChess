@@ -40,11 +40,8 @@ public class SearchChart {
     private static Dictionary<string, int> mVisitedScore = new Dictionary<string, int>();
 
     public static bool UpdateVisited(ulong chartKey, byte depth) {
-        lock (mVisited) {
-            if (mVisited.ContainsKey(chartKey) && depth <= mVisited[chartKey]) {
-                return false;
-            }
-            Achonor.Function.Update(mVisited, chartKey, depth);
+        if (mVisited.ContainsKey(chartKey) && depth <= mVisited[chartKey]) {
+            return false;
         }
         return true;
     }
@@ -89,6 +86,10 @@ public class SearchChart {
         if (-1 == chart.GetChessPoint((chart.IsRedPlayChess ? 0 : 16))) {
             return result;
         }
+        //¿Õ²½²Ã¼ô
+
+
+
         List<MovePoint> movePoints = chart.GetAllMovePoints(chart.IsRedPlayChess);
         for (int k = 0; k < movePoints.Count; k++) {
             MovePoint move = movePoints[k];

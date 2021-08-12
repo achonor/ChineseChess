@@ -169,16 +169,17 @@ namespace Assets.Scripts {
                 return false;
             }
             bool isRedChess = BoardTools.IsRedChess(chessID);
-            Chart chart = Chart.Clone(mChart);
-            chart.MoveChess(chessID, point, true);
+            mChart.MoveChess(chessID, point);
             //判断是否被将军
-            if (chart.IsJiangJun(!isRedChess)) {
+            if (mChart.IsJiangJun(!isRedChess)) {
                 //对面帅的位置
-                int enemyShuaiPoint = chart.GetShuaiPoint(!isRedChess);
+                int enemyShuaiPoint = mChart.GetShuaiPoint(!isRedChess);
                 if ((point >> 4) != (enemyShuaiPoint >> 4) || (point & 0xF) != (enemyShuaiPoint & 0xF)) {
+                    mChart.BackStep();
                     return false;
                 }
             }
+            mChart.BackStep();
             return true;
         }
 
