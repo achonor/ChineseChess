@@ -15,17 +15,20 @@ public class SearchChart {
     public const int SByte_1 = 1;
     public const int SByte_16 = 16;
 
+    public const int MAX_VALUE = 100000;
+    public const int MIN_VALUE = -100000;
+
     public class Step {
         public int chessID;
         public int point;
 
-        public byte searchDepth;
+        public int searchDepth;
         /// <summary>
         /// 往后搜索searchDepth步的最优分数
         /// </summary>
-        public int mostScore = -100000;
+        public int mostScore = MIN_VALUE;
 
-        public void SetValue(int _chessID, int _point, byte _searchDepth, int _mostScore) {
+        public void SetValue(int _chessID, int _point, int _searchDepth, int _mostScore) {
             this.chessID = _chessID;
             this.point = _point;
             this.searchDepth = _searchDepth;
@@ -35,11 +38,11 @@ public class SearchChart {
     /// <summary>
     /// 搜索过的状态标记,byte表示搜索深度
     /// </summary>
-    private static Dictionary<ulong, byte> mVisited = new Dictionary<ulong, byte>();
+    private static Dictionary<ulong, int> mVisited = new Dictionary<ulong, int>();
 
     private static Dictionary<string, int> mVisitedScore = new Dictionary<string, int>();
 
-    public static bool UpdateVisited(ulong chartKey, byte depth) {
+    public static bool UpdateVisited(ulong chartKey, int depth) {
         if (mVisited.ContainsKey(chartKey) && depth <= mVisited[chartKey]) {
             return false;
         }
@@ -55,7 +58,7 @@ public class SearchChart {
                 byte curDepth = 3;
                 long startTime = Achonor.Function.GetLocaLTime();
                 while (curDepth <= 64) {
-                    result = DfsSearch(chart, curDepth, true, int.MinValue, int.MaxValue);
+                    result = DfsSearch(chart, curDepth, true, MIN_VALUE, MAX_VALUE);
                     long newTime = Achonor.Function.GetLocaLTime();
                     if (15000 < (newTime - startTime)) {
                         break;
@@ -80,14 +83,22 @@ public class SearchChart {
     }
 
 
-    public static Step DfsSearch(Chart chart, byte lastDepth, bool isMax, int alpha, int beta) {
+    public static Step DfsSearch(Chart chart, int lastDepth, bool isMax, int alpha, int beta, bool NoNULL = false) {
         Step result = new Step();
         result.searchDepth = lastDepth;
         if (-1 == chart.GetChessPoint((chart.IsRedPlayChess ? 0 : 16))) {
             return result;
         }
         //空步裁剪
-
+        //if ((!NoNULL) && beta != int.MaxValue && chart.NullOkay()) {
+        //    chart.NullMove();
+        //    Step value = DfsSearch(chart, lastDepth - 3, !isMax, -beta, 1 - beta, true);
+        //    value.mostScore *= -1;
+        //    chart.BackNullMove();
+        //    if (value.mostScore >= beta) {
+        //        return value;
+        //    }
+        //}
 
 
         List<MovePoint> movePoints = chart.GetAllMovePoints(chart.IsRedPlayChess);
@@ -107,7 +118,7 @@ public class SearchChart {
                     step = new Step();
                     step.SetValue(move.ChessID, move.PointKey, lastDepth, chart.GetScore(!chart.IsRedPlayChess));
                 } else {
-                    step = DfsSearch(chart, (byte)(lastDepth - 1), !isMax, alpha, beta);
+                    step = DfsSearch(chart, (byte)(lastDepth - 1), !isMax, alpha, beta, NoNULL);
                     step.mostScore *= -1;
                 }
             }

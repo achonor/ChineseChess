@@ -395,7 +395,15 @@ namespace Assets.Scripts {
             return true;
         }
 
-        public int GetShuaiPoint(bool isRedChess) {
+        /// <summary>
+        /// 判断是否允许空步裁剪
+        /// </summary>
+        /// <returns></returns>
+        public bool NullOkay(){
+            return (IsRedPlayChess ? RedScore : BlockScore) > 300;
+          }
+
+    public int GetShuaiPoint(bool isRedChess) {
             return GetChessPoint((isRedChess ? 0 : 16));
         }
 
@@ -435,15 +443,11 @@ namespace Assets.Scripts {
         /// <param name="point"></param>
         public void AddChess(int chessID, int point) {
             ChessPointKeys[chessID] = point;
-            if (0 == ChessPointKeys[chessID]) {
-                Debug.Log("");
-            }
-                Function.Update(PointKey2ChessDict, point, chessID);
+            Function.Update(PointKey2ChessDict, point, chessID);
             //更新状态
             SetChartStatus(point, true);
             bool isRedChess = BoardTools.IsRedChess(chessID);
             ChessType chessType = BoardTools.GetChessType(chessID);
-
             mZobristKey ^= ZobristValue[isRedChess ? 0 : 1, (int)chessType, (point >> 4) * 10 + (point & 0xF) - 33];
             //更新分数
             if (isRedChess) {
@@ -519,6 +523,22 @@ namespace Assets.Scripts {
             }
             mIsRedPlayChess = !mIsRedPlayChess;
             return true;
+        }
+
+        /// <summary>
+        /// 走一步空步
+        /// </summary>
+        /// <param name=""></param>
+        public void NullMove() {
+            mIsRedPlayChess = !mIsRedPlayChess;
+            RecordsStack.Push(new Record());
+        }
+        /// <summary>
+        /// 撤消走一步空步
+        /// </summary>
+        public void BackNullMove() {
+            mIsRedPlayChess = !mIsRedPlayChess;
+            RecordsStack.Pop();
         }
 
         public void PrintStep() {
@@ -603,6 +623,7 @@ namespace Assets.Scripts {
             return result;
         }
 
+        #region 位置计算
         /// <summary>
         /// 获取可行走范围内指定颜色的棋
         /// </summary>
@@ -932,5 +953,6 @@ namespace Assets.Scripts {
             }
             return result;
         }
+        #endregion
     }
 }
