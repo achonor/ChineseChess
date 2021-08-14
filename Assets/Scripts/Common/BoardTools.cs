@@ -187,6 +187,10 @@ namespace Assets.Scripts.Common {
         /// </summary>
         private static Vector2Int[] PointToPositionArray = new Vector2Int[256];
         /// <summary>
+        /// Point转到棋盘上0-90的点
+        /// </summary>
+        private static int[] PointToIndexArray = new int[256];
+        /// <summary>
         /// 棋子类型
         /// </summary>
         private static ChessType[] ChessTypeArray = new ChessType[32];
@@ -220,6 +224,9 @@ namespace Assets.Scripts.Common {
                     PositionToPointArray[i, k] = ((i << 4) | k);
                     PointToPositionArray[GetPointByPosition(i, k)] = new Vector2Int(i, k);
                 }
+            }
+            for (int i = 0; i < 256; i++) {
+                PointToIndexArray[i] = (i >> 4) * 10 + (i & 0xF) - 33;
             }
             for (int i = 0; i < 16; i++) {
                 for (int k = 0; k < 16; k++) {
@@ -292,6 +299,15 @@ namespace Assets.Scripts.Common {
         /// <returns></returns>
         public static Vector2Int PointToPosition(int point) {
             return PointToPositionArray[point];
+        }
+
+        /// <summary>
+        /// 点转换到0-90的下标
+        /// </summary>
+        /// <param name="point"></param>
+        /// <returns></returns>
+        public static int PointToIndex(int point) {
+            return PointToIndexArray[point];
         }
 
         /// <summary>

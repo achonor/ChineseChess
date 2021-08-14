@@ -26,11 +26,23 @@ namespace Assets.Scripts {
         [SerializeField]
         private Toggle mBlockAIToggle;
 
+        [SerializeField]
+        private Text mRedScore;
+        [SerializeField]
+        private Text mBlockScore;
+
         private Chart mChart;
+
+        private bool mIsChessMoving = false;
 
         private List<GameObject> mAllMovePointEffect = new List<GameObject>();
         private GameObject mNewPointEffect = null;
         private GameObject mLastPointEffect = null;
+
+        /// <summary>
+        /// 当前回合数
+        /// </summary>
+        private int CurRoundCount = 0;
 
         private int SelectedChessID = -1;
         private ChessBase SelectedChess {
@@ -39,7 +51,10 @@ namespace Assets.Scripts {
             }
         }
 
-        private bool mIsChessMoving = false;
+        /// <summary>
+        /// 黑方预测分数
+        /// </summary>
+        private List<int> LastBlockExpectScore = new List<int>();
 
         protected override void Awake() {
             base.Awake();
@@ -70,10 +85,10 @@ namespace Assets.Scripts {
                     int pointKey = int.Parse(hit.collider.name);
                     ClickPoint(pointKey);
                     if (-1 != mChart.GetChessByPoint(pointKey)) {
-                        Debug.Log("棋子评分：" + mChart.GetChessScore(mChart.GetChessByPoint(pointKey)));
+                        //Debug.Log("棋子评分：" + mChart.GetChessScore(mChart.GetChessByPoint(pointKey)));
                     }
                     if (0 <= LastPointKey) {
-                        Debug.Log("中间棋子数量：" + mChart.GetLineChessCount(pointKey, LastPointKey));
+                        //Debug.Log("中间棋子数量：" + mChart.GetLineChessCount(pointKey, LastPointKey));
                         LastPointKey = -1;
                     } else {
                         LastPointKey = pointKey;
@@ -84,6 +99,10 @@ namespace Assets.Scripts {
             if (Input.GetKeyDown(KeyCode.Backspace)) {
                 mChart.BackStep();
                 mChart.BackStep();
+                CurRoundCount--;
+                if (0 < LastBlockExpectScore.Count) {
+                    LastBlockExpectScore.RemoveAt(LastBlockExpectScore.Count - 1);
+                }
                 SetChart(mChart);
             }
         }
@@ -99,6 +118,15 @@ namespace Assets.Scripts {
                     AllChess[i].SetPosPoint(point);
                 }
             }
+            UpdateScoreText();
+        }
+
+        /// <summary>
+        /// 更新分数
+        /// </summary>
+        public void UpdateScoreText() {
+            mRedScore.text = mChart.RedScore.ToString();
+            mBlockScore.text = mChart.BlockScore.ToString();
         }
 
         public ChessBase GetChess(int chessID) {
@@ -198,6 +226,8 @@ namespace Assets.Scripts {
             }
         }
 
+
+
         protected void AddMovePointEffect(int point) {
             GameObject go = PrefabManager.Instance.LoadPrefab("Prefabs/CanMovedPoint");
             go.SetActive(true);
@@ -271,7 +301,6 @@ namespace Assets.Scripts {
             RemoveEffects();
             mIsChessMoving = true;
             chess.transform.DOLocalMove((Vector2)BoardTools.PointToPosition(point), 0.3f).OnComplete(()=> {
-                mIsChessMoving = false;
                 //添加
                 AddLastPointEffect(lastPoint);
                 AddNewPointEffect(point);
@@ -279,8 +308,13 @@ namespace Assets.Scripts {
                 if ((mChart.IsRedPlayChess && mRedAIToggle.isOn) | ((!mChart.IsRedPlayChess) && mBlockAIToggle.isOn)) {
                     //人机下棋
                     SearchChart.Search(mChart, (step) => {
+                        mIsChessMoving = false;
+                        LastBlockExpectScore.Add(step.mostScore);
+                        Debug.Log("预测黑方三步后的最低分数：" + step.mostScore);
                         MoveChess(step.chessID, step.point);
                     });
+                } else {
+                    mIsChessMoving = false;
                 }
             });
 
@@ -293,6 +327,14 @@ namespace Assets.Scripts {
             mChart.MoveChess(chessID, point);
             SelectedChessID = -1;
 
+            if (mChart.IsRedPlayChess) {
+                CurRoundCount++;
+                //if (3 <= CurRoundCount && mChart.GetScore(false) < LastBlockExpectScore[LastBlockExpectScore.Count - 3]) {
+                //    错误
+                //    Debug.LogErrorFormat("黑方当前分数{0}小于之前预测的分数{1}", mChart.GetScore(false), LastBlockExpectScore[LastBlockExpectScore.Count - 3]);
+                //}
+            }
+
             //判断是否将军
             bool isRedChess = BoardTools.IsRedChess(chessID);
             if (mChart.IsJiangJun(isRedChess)) {
@@ -303,6 +345,8 @@ namespace Assets.Scripts {
                     AddJiangJunEffect();
                 }
             }
+            //更新分数
+            UpdateScoreText();
         }
 
         protected void PlayCantMove(int chessID, int point) {
