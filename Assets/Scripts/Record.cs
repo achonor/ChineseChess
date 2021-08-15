@@ -12,4 +12,5 @@ public class Record {
     public int APoint;
     public int BChessID;
     public int BPoint;
+    public bool IsJiangJun;
 }

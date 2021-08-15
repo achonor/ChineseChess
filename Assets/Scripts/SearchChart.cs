@@ -19,6 +19,8 @@ public class SearchChart {
     public const int MAX_VALUE = 100000;
     public const int MIN_VALUE = -100000;
 
+    public const int MAX_DEPTH = 64;
+
     public class Step {
         public int chessID;
         public int point;
@@ -50,13 +52,13 @@ public class SearchChart {
         Step result = null;
         Thread thread = new Thread(()=> {
             try {
-                byte curDepth = 5;
+                int curDepth = GameConst.Instance.MinSearchDepth - 1;
                 long startTime = Achonor.Function.GetLocaLTime();
-                while (curDepth < 64) {
+                while (curDepth < MAX_DEPTH) {
                     curDepth++;
                     mVisited.Clear();
                     result = SearchRoot(chart, curDepth);
-                    if (10000 < (Achonor.Function.GetLocaLTime() - startTime)) {
+                    if (GameConst.Instance.MaXSearchDuration < (Achonor.Function.GetLocaLTime() - startTime)) {
                         break;
                     }
                 }
@@ -108,11 +110,12 @@ public class SearchChart {
 
     public static int DfsSearch(Chart chart, int lastDepth, int alpha, int beta, bool NoNULL = false) {
         int result = MIN_VALUE;
-        if (-1 == chart.GetChessPoint((chart.IsRedPlayChess ? 0 : 16))) {
+        if (-1 == chart.GetChessPoint(BoardTools.GetChessID(0, chart.IsRedPlayChess))) {
             return result;
         }
         if (lastDepth <= 0) {
             runCount++;
+            //return DfsLimit(chart, 0, alpha, beta);
             return chart.GetScore(chart.IsRedPlayChess);
         }
         //空步裁剪
@@ -161,6 +164,53 @@ public class SearchChart {
         if (!mVisited.ContainsKey(chartKey) || mVisited[chartKey] < lastDepth) {
             mVisited.Update(chartKey, lastDepth);
             mVisitedScore.Update(chartKey, result);
+        }
+        return result;
+    }
+
+    /// <summary>
+    /// 最后的极限搜索，只搜索吃子和将军的情况
+    /// </summary>
+    /// <returns></returns>
+    public static int DfsLimit(Chart chart, int curDepth, int alpha, int beta) {
+        if (-1 == chart.GetChessPoint(BoardTools.GetChessID(0, chart.IsRedPlayChess))) {
+            return MIN_VALUE;
+        }
+        int result = chart.GetScore(chart.IsRedPlayChess);
+        if (curDepth == 2) {
+            return result;
+        }
+        List<MovePoint> movePoints;
+        if (chart.IsBeJiangJun()) {
+            //被将军生成所有能走的
+            movePoints = chart.GetAllMovePoints(chart.IsRedPlayChess);
+        } else {
+            if (alpha < result) {
+                alpha = result;
+                if (beta <= alpha) {
+                    //剪枝
+                    return result;
+                }
+            }
+            //生成吃子走法，后期看能不能加上将军的走法
+            movePoints = chart.GetAllMovePoints(chart.IsRedPlayChess, true);
+        }
+        result = MIN_VALUE;
+        for (int i = 0; i < movePoints.Count; i++) {
+            MovePoint move = movePoints[i];
+            chart.MoveChess(move.ChessID, move.PointKey);
+            int stepResult = -DfsLimit(chart, curDepth++, -beta, -alpha);
+            chart.BackStep();
+            if (result < stepResult) {
+                result = stepResult;
+            }
+            if (alpha < stepResult) {
+                alpha = stepResult;
+                if (beta <= alpha) {
+                    //剪枝
+                    return result;
+                }
+            }
         }
         return result;
     }

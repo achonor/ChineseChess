@@ -287,7 +287,7 @@ namespace Assets.Scripts {
                 int rangeLen = Math.Abs(aPointPos.x - bPointPos.x) - 1;
                 return BoardTools.GetBinaryOneCount(ChartStatusY[aPointPos.y] & ((0XFFFF >> (16 - rangeLen)) << Math.Min(aPointPos.x, bPointPos.x) + 1));
             }
-            return 0;
+            return 100;
         }
 
         public int GetChessByPoint(int point) {
@@ -356,19 +356,76 @@ namespace Assets.Scripts {
         }
 
         /// <summary>
+        /// 是否正在被将军
+        /// </summary>
+        /// <returns></returns>
+        public bool IsBeJiangJun() {
+            if (Records.Count <= 0) {
+                return false;
+            }
+            return Records[Records.Count - 1].IsJiangJun;
+        }
+
+        /// <summary>
         /// 是否在将军
         /// </summary>
         /// <param name="isRedChess"></param>
         /// <returns></returns>
         public bool IsJiangJun(bool isRedChess) {
             int enemyShuaiPoint = GetShuaiPoint(!isRedChess);
-            for (int i = 0; i < 16; i++) {
-                int tempID = (i | (isRedChess ? 0 : 16));
-                List<int> tempPoints = GetMovePoints(tempID);
-                for (int k = 0; k < tempPoints.Count; k++) {
-                    if (enemyShuaiPoint == tempPoints[k]) {
-                        return true;
-                    }
+            if (-1 == enemyShuaiPoint) {
+                return false;
+            }
+            int enemyShuaiID = BoardTools.GetChessID(0, !isRedChess);
+
+            int chessID;
+            List<int> chessIDs;
+
+            //能将军的只有马车炮兵
+            //马
+            chessID = BoardTools.GetChessID(5, isRedChess);
+            if (-1 != GetChessPoint(chessID)) {
+                chessIDs = GetInRangeChess_Ma(this, chessID, isRedChess);
+                if (chessIDs.Contains(enemyShuaiID)) {
+                    return true;
+                }
+            }
+            chessID = BoardTools.GetChessID(6, isRedChess);
+            if (-1 != GetChessPoint(chessID)) {
+                chessIDs = GetInRangeChess_Ma(this, chessID, isRedChess);
+                if (chessIDs.Contains(enemyShuaiID)) {
+                    return true;
+                }
+            }
+            //车
+            int chePoint = GetChessPoint(BoardTools.GetChessID(7, isRedChess));
+            if (-1 != chePoint && 0 == GetLineChessCount(chePoint, enemyShuaiPoint)) {
+                return true;
+            }
+            chePoint = GetChessPoint(BoardTools.GetChessID(8, isRedChess));
+            if (-1 != chePoint && 0 == GetLineChessCount(chePoint, enemyShuaiPoint)) {
+                return true;
+            }
+
+            //炮
+            int paoPoint = GetChessPoint(BoardTools.GetChessID(9, isRedChess));
+            if (-1 != paoPoint && 1 == GetLineChessCount(paoPoint, enemyShuaiPoint)) {
+                return true;
+            }
+            paoPoint = GetChessPoint(BoardTools.GetChessID(10, isRedChess));
+            if (-1 != paoPoint && 1 == GetLineChessCount(paoPoint, enemyShuaiPoint)) {
+                return true;
+            }
+
+            //兵
+            for (int i = 11; i < 16; i++) {
+                chessID = BoardTools.GetChessID(i, isRedChess);
+                if (-1 == GetChessPoint(chessID)) {
+                    continue;
+                }
+                chessIDs = GetInRangeChess_Bing(this, chessID, isRedChess);
+                if (chessIDs.Contains(enemyShuaiID)) {
+                    return true;
                 }
             }
             return false;
@@ -381,7 +438,7 @@ namespace Assets.Scripts {
         /// <returns></returns>
         public bool IsJueSha(bool isRedChess) {
             for (int i = 0; i < 16; i++) {
-                int chessID = (i | (isRedChess ? 16 : 0));
+                int chessID = BoardTools.GetChessID(0, !isRedChess);
                 List<int> tempPoints = GetMovePoints(chessID);
                 for (int k = 0; k < tempPoints.Count; k++) {
                     //判断移动之后是否还是被将军
@@ -404,8 +461,8 @@ namespace Assets.Scripts {
             return 10400 < (IsRedPlayChess ? RedScore : BlockScore);
           }
 
-    public int GetShuaiPoint(bool isRedChess) {
-            return GetChessPoint((isRedChess ? 0 : 16));
+        public int GetShuaiPoint(bool isRedChess) {
+            return GetChessPoint(BoardTools.GetChessID(0, isRedChess));
         }
 
         /// <summary>
@@ -503,7 +560,6 @@ namespace Assets.Scripts {
             record.APoint = GetChessPoint(chessID);
             record.BChessID = oldChessID;
             record.BPoint = point;
-            RecordsStack.Push(record);
             if (-1 != oldChessID) {
                 RemoveChess(oldChessID);
             }
@@ -512,6 +568,9 @@ namespace Assets.Scripts {
             //添加到新位置
             AddChess(chessID, point);
             ChangePlayer();
+
+            //record.IsJiangJun = IsJiangJun(!IsRedPlayChess);
+            RecordsStack.Push(record);
         }
 
         /// <summary>
@@ -562,10 +621,10 @@ namespace Assets.Scripts {
             Debug.Log(printText.ToString());
         }
 
-        public List<MovePoint> GetAllMovePoints(bool isRedChess) {
+        public List<MovePoint> GetAllMovePoints(bool isRedChess, bool onlyCapture = false) {
             List<MovePoint> result = new List<MovePoint>();
             for (int i = 0; i < 16; i++) {
-                int chessID = (i + (isRedChess ? 0 : 16));
+                int chessID = BoardTools.GetChessID(i, isRedChess);
                 List<int> movePoints = GetMovePoints(chessID);
                 for (int k = 0; k < movePoints.Count; k++) {
                     result.Add(new MovePoint() {
@@ -599,6 +658,14 @@ namespace Assets.Scripts {
                 }
                 return 0;
             });
+            while (onlyCapture && 0 < result.Count) {
+                int chessID = GetChessByPoint(result[result.Count - 1].PointKey);
+                if (-1 == chessID) {
+                    result.RemoveAt(result.Count - 1);
+                } else {
+                    break;
+                }
+            }
             return result;
         }
 
@@ -790,9 +857,6 @@ namespace Assets.Scripts {
             List<int> result = new List<int>();
             int pointKey = chart.GetChessPoint(chessID);
             List<int> movePoints = BoardTools.GetMovePoints(chessID, pointKey);
-            if (null == movePoints) {
-                Debug.Log("1");
-            }
             for (int i = 0; i < movePoints.Count; i++) {
                 int newPoint = movePoints[i];
                 if (chart.PointHasChess(newPoint)) {

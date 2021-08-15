@@ -22,14 +22,20 @@ namespace Assets.Scripts {
         private Transform mEffectParent;
 
         [SerializeField]
-        private Toggle mRedAIToggle;
+        private Toggle mAIToggleDown;
         [SerializeField]
-        private Toggle mBlockAIToggle;
+        private Toggle mAIToggleUp;
 
         [SerializeField]
-        private Text mRedScore;
+        private Text mDownScore;
         [SerializeField]
-        private Text mBlockScore;
+        private Text mUpScore;
+
+        [SerializeField]
+        private Toggle mFlipBoardToggle;
+
+        [SerializeField]
+        private Button mClearButton;
 
         private Chart mChart;
 
@@ -38,6 +44,19 @@ namespace Assets.Scripts {
         private List<GameObject> mAllMovePointEffect = new List<GameObject>();
         private GameObject mNewPointEffect = null;
         private GameObject mLastPointEffect = null;
+
+
+        public bool IsRedOpenAI {
+            get {
+                return (mFlipBoardToggle.isOn) ? mAIToggleUp.isOn : mAIToggleDown.isOn;
+            }
+        }
+
+        public bool IsBlockOpenAI {
+            get {
+                return (mFlipBoardToggle.isOn) ? mAIToggleDown.isOn : mAIToggleUp.isOn;
+            }
+        }
 
         /// <summary>
         /// 当前回合数
@@ -59,6 +78,25 @@ namespace Assets.Scripts {
         protected override void Awake() {
             base.Awake();
             BoardTools.InitData();
+            mFlipBoardToggle.onValueChanged.AddListener((param) => {
+                Vector3 angles = mMainCamera.transform.localEulerAngles;
+                if (!param) {
+                    angles.z = 0;
+                } else {
+                    angles.z = 180;
+                }
+                mMainCamera.transform.localEulerAngles = angles;
+                for (int i = 0; i < AllChess.Count; i++) {
+                    angles = AllChess[i].transform.localEulerAngles;
+                    angles.z = param ? 180 : 0;
+                    AllChess[i].transform.localEulerAngles = angles;
+                }
+                UpdateScoreText();
+            });
+            mClearButton.onClick.AddListener(() => {
+                SetChart(new Chart());
+                RemoveEffects();
+            });
         }
 
         protected void Start() {
@@ -85,7 +123,7 @@ namespace Assets.Scripts {
                     int pointKey = int.Parse(hit.collider.name);
                     ClickPoint(pointKey);
                     if (-1 != mChart.GetChessByPoint(pointKey)) {
-                        //Debug.Log("棋子评分：" + mChart.GetChessScore(mChart.GetChessByPoint(pointKey)));
+                        Debug.Log("棋子评分：" + mChart.GetChessScore(mChart.GetChessByPoint(pointKey)));
                     }
                     if (0 <= LastPointKey) {
                         //Debug.Log("中间棋子数量：" + mChart.GetLineChessCount(pointKey, LastPointKey));
@@ -99,6 +137,7 @@ namespace Assets.Scripts {
             if (Input.GetKeyDown(KeyCode.Backspace)) {
                 mChart.BackStep();
                 mChart.BackStep();
+                RemoveEffects();
                 CurRoundCount--;
                 if (0 < LastBlockExpectScore.Count) {
                     LastBlockExpectScore.RemoveAt(LastBlockExpectScore.Count - 1);
@@ -125,8 +164,13 @@ namespace Assets.Scripts {
         /// 更新分数
         /// </summary>
         public void UpdateScoreText() {
-            mRedScore.text = mChart.RedScore.ToString();
-            mBlockScore.text = mChart.BlockScore.ToString();
+            if (mFlipBoardToggle.isOn) {
+                mDownScore.text = mChart.BlockScore.ToString();
+                mUpScore.text = mChart.RedScore.ToString();
+            } else {
+                mDownScore.text = mChart.RedScore.ToString();
+                mUpScore.text = mChart.BlockScore.ToString();
+            }
         }
 
         public ChessBase GetChess(int chessID) {
@@ -305,12 +349,11 @@ namespace Assets.Scripts {
                 AddLastPointEffect(lastPoint);
                 AddNewPointEffect(point);
 
-                if ((mChart.IsRedPlayChess && mRedAIToggle.isOn) | ((!mChart.IsRedPlayChess) && mBlockAIToggle.isOn)) {
+                if ((mChart.IsRedPlayChess && IsRedOpenAI) | ((!mChart.IsRedPlayChess) && IsBlockOpenAI)) {
                     //人机下棋
                     SearchChart.Search(mChart, (step) => {
                         mIsChessMoving = false;
                         LastBlockExpectScore.Add(step.mostScore);
-                        Debug.Log("预测黑方三步后的最低分数：" + step.mostScore);
                         MoveChess(step.chessID, step.point);
                     });
                 } else {
@@ -329,10 +372,6 @@ namespace Assets.Scripts {
 
             if (mChart.IsRedPlayChess) {
                 CurRoundCount++;
-                //if (3 <= CurRoundCount && mChart.GetScore(false) < LastBlockExpectScore[LastBlockExpectScore.Count - 3]) {
-                //    错误
-                //    Debug.LogErrorFormat("黑方当前分数{0}小于之前预测的分数{1}", mChart.GetScore(false), LastBlockExpectScore[LastBlockExpectScore.Count - 3]);
-                //}
             }
 
             //判断是否将军
@@ -411,4 +450,7 @@ namespace Assets.Scripts {
             }
             stringBuilder.Append("}");
             Debug.Log(stringBuilder);
+
+
+
 */

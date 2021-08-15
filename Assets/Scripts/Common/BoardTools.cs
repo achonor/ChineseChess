@@ -92,13 +92,13 @@ namespace Assets.Scripts.Common {
                 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
                 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
                 0,  0,  0,194,200,198,204,208,208,206,206,206,206,  0,  0,  0,
-                0,  0,  0,206,208,208,209,212,211,213,207,209,207,  0,  0,  0,
+                0,  0,  0,206,208,208,212,212,211,213,207,209,207,  0,  0,  0,
                 0,  0,  0,204,206,204,204,212,211,213,207,209,207,  0,  0,  0,
                 0,  0,  0,212,212,212,212,214,214,216,214,216,213,  0,  0,  0,
                 0,  0,  0,200,200,212,214,215,215,216,216,233,214,  0,  0,  0,
                 0,  0,  0,212,212,212,212,214,214,216,214,216,213,  0,  0,  0,
                 0,  0,  0,204,206,204,204,212,211,213,207,209,207,  0,  0,  0,
-                0,  0,  0,206,208,208,209,212,211,213,207,209,207,  0,  0,  0,
+                0,  0,  0,206,208,208,212,212,211,213,207,209,207,  0,  0,  0,
                 0,  0,  0,194,200,198,204,208,208,206,206,206,206,  0,  0,  0,
                 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
                 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -298,6 +298,9 @@ namespace Assets.Scripts.Common {
         /// <param name="point"></param>
         /// <returns></returns>
         public static Vector2Int PointToPosition(int point) {
+            if (point < 0 || 255 < point) {
+                point |= 0;
+            }
             return PointToPositionArray[point];
         }
 
@@ -333,6 +336,10 @@ namespace Assets.Scripts.Common {
 
         public static ChessType GetChessType(int chessID) {
             return ChessTypeArray[chessID];
+        }
+
+        public static int GetChessID(int ID, bool isRedChess) {
+            return ID | (isRedChess ? 0 : 16);
         }
 
         public static int GetChessPointScore(int chessID, int point) {
