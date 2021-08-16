@@ -458,7 +458,7 @@ namespace Assets.Scripts {
         /// </summary>
         /// <returns></returns>
         public bool NullOkay(){
-            return 10400 < (IsRedPlayChess ? RedScore : BlockScore);
+            return 10300 < (IsRedPlayChess ? RedScore : BlockScore);
           }
 
         public int GetShuaiPoint(bool isRedChess) {
