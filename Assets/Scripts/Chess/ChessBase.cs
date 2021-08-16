@@ -40,8 +40,13 @@ public class ChessBase : BaseBehaviour {
         protected set;
     }
 
+    private Transform mObject;
+
     protected override void Start() {
         base.Start();
+        if (null == mObject) {
+            mObject = transform.Find("Object");
+        }
     }
 
 
@@ -54,5 +59,9 @@ public class ChessBase : BaseBehaviour {
     public void SetPosPoint(int point) {
         PosPoint = point;
         transform.localPosition = (Vector2)BoardTools.PointToPosition(point);
+    }
+
+    public void SetFilpChess(bool isFilp) {
+        mObject.localEulerAngles = new Vector3(0, 0, isFilp ? 180 : 0);
     }
 }

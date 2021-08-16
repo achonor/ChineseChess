@@ -48,7 +48,7 @@ public partial class SROptions : INotifyPropertyChanged
 
     [DisplayName("最小搜索深度")]
     [Increment(1)]
-    [NumberRange(6, 10)]
+    [NumberRange(6, 20)]
     public int MinSearchDepth {
         get {
             return GameConst.Instance.MinSearchDepth;
@@ -59,7 +59,7 @@ public partial class SROptions : INotifyPropertyChanged
     }
     [DisplayName("最长搜索时间")]
     [Increment(500)]
-    [NumberRange(5000, 20000)]
+    [NumberRange(1000, 50000)]
     public int MaXSearchDuration {
         get {
             return GameConst.Instance.MaXSearchDuration;

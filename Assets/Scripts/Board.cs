@@ -87,9 +87,7 @@ namespace Assets.Scripts {
                 }
                 mMainCamera.transform.localEulerAngles = angles;
                 for (int i = 0; i < AllChess.Count; i++) {
-                    angles = AllChess[i].transform.localEulerAngles;
-                    angles.z = param ? 180 : 0;
-                    AllChess[i].transform.localEulerAngles = angles;
+                    AllChess[i].SetFilpChess(param);
                 }
                 UpdateScoreText();
             });
