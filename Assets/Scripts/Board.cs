@@ -197,6 +197,7 @@ namespace Assets.Scripts {
                 }
                 //选中棋子
                 SelectChess(chessID);
+                AudioManager.Instance.PlayNewSound("select");
             } else{
                 int chessID = -1;
                 if (!mChart.GetChessByPoint(pointKey, out chessID)) {
@@ -302,6 +303,7 @@ namespace Assets.Scripts {
             Achonor.Scheduler.AddDelay(0.3f, () => {
                 PrefabManager.Instance.RemovePrefab(go);
             });
+            AudioManager.Instance.PlayNewSound("Woman_jiangjun");
         }
 
         protected void AddJueShaEffect() {
@@ -312,6 +314,7 @@ namespace Assets.Scripts {
             Achonor.Scheduler.AddDelay(0.8f, () => {
                 PrefabManager.Instance.RemovePrefab(go);
             });
+            AudioManager.Instance.PlayNewSound("gamewin");
         }
 
 
@@ -346,6 +349,8 @@ namespace Assets.Scripts {
                 //添加
                 AddLastPointEffect(lastPoint);
                 AddNewPointEffect(point);
+                //音效
+                AudioManager.Instance.PlayNewSound("go");
 
                 if ((mChart.IsRedPlayChess && IsRedOpenAI) | ((!mChart.IsRedPlayChess) && IsBlockOpenAI)) {
                     //人机下棋
@@ -365,7 +370,9 @@ namespace Assets.Scripts {
                 GetChess(oldChessID).SetDeath(true);
             }
             //移动棋子
-            mChart.MoveChess(chessID, point);
+            if (mChart.MoveChess(chessID, point)) {
+                AudioManager.Instance.PlayNewSound("eat");
+            }
             SelectedChessID = -1;
 
             if (mChart.IsRedPlayChess) {
@@ -389,6 +396,7 @@ namespace Assets.Scripts {
         protected void PlayCantMove(int chessID, int point) {
             ChessBase chess = GetChess(chessID);
             chess.transform.DOShakePosition(0.5f, 0.02f);
+            AudioManager.Instance.PlayNewSound("goerror");
         }
     }
 }

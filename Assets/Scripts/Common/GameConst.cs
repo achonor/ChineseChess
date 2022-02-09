@@ -7,9 +7,9 @@ public class GameConst : SingleObject<GameConst>
     /// <summary>
     /// 最低搜索深度
     /// </summary>
-    public int MinSearchDepth = 7;
+    public int MinSearchDepth = 8;
     /// <summary>
     /// 最长搜索时间
     /// </summary>
-    public int MaXSearchDuration = 6000;
+    public int MaXSearchDuration = 3000;
 }

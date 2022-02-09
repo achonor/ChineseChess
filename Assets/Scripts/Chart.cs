@@ -438,7 +438,7 @@ namespace Assets.Scripts {
         /// <returns></returns>
         public bool IsJueSha(bool isRedChess) {
             for (int i = 0; i < 16; i++) {
-                int chessID = BoardTools.GetChessID(0, !isRedChess);
+                int chessID = BoardTools.GetChessID(i, !isRedChess);
                 List<int> tempPoints = GetMovePoints(chessID);
                 for (int k = 0; k < tempPoints.Count; k++) {
                     //判断移动之后是否还是被将军
@@ -552,7 +552,7 @@ namespace Assets.Scripts {
         /// </summary>
         /// <param name="chessID"></param>
         /// <param name="point"></param>
-        public void MoveChess(int chessID, int point) {
+        public bool MoveChess(int chessID, int point) {
             int oldChessID = GetChessByPoint(point);
             //记录
             Record record = new Record();
@@ -571,6 +571,7 @@ namespace Assets.Scripts {
 
             //record.IsJiangJun = IsJiangJun(!IsRedPlayChess);
             RecordsStack.Push(record);
+            return (-1 != record.BChessID);
         }
 
         /// <summary>
