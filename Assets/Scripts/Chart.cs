@@ -130,21 +130,20 @@ namespace Assets.Scripts {
             AddChess(31, 3 * 16 + 9);
         }
 
+        public Chart(Chart chart) {
+            RedScore = 0;
+            BlockScore = 0;
+            mZobristKey = 0;
+            mIsRedPlayChess = chart.mIsRedPlayChess;
+            for (int i = 0; i < chart.ChessPointKeys.Length; i++) {
+                if (-1 == chart.ChessPointKeys[i]) {
+                    continue;
+                }
+                AddChess(i, chart.ChessPointKeys[i]);
+            }
+        }
+
         public ulong GetChartKey() {
-            //byte[] bytes = new byte[33];
-
-            //bytes[0] = (byte)(IsRedPlayChess ? 0 : 1);
-            //for (int i = 0; i < ChessPointKeys.Length; i++) {
-            //    bytes[i] += (byte)ChessPointKeys[i];
-            //}
-            //for (int i = 1; i < 6; i++) {
-            //    Array.Sort<byte>(bytes, i * 2 - 1, 2);
-            //}
-            //Array.Sort<byte>(bytes, 11, 5);
-            //Array.Sort<byte>(bytes, 27, 5);
-            //bytes[32] = (byte)(IsRedPlayChess ? 0 : 1);
-            //return Convert.ToBase64String(bytes);
-
             return ZobristKey;
         }
 

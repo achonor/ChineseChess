@@ -11,9 +11,11 @@ namespace Achonor
 
     public class Scheduler : SingleInstance<Scheduler>
     {
-        private static Dictionary<string, SchedulerData> schedulers = new Dictionary<string, SchedulerData>();
+        private static Dictionary<string, SchedulerData> mSchedulers = new Dictionary<string, SchedulerData>();
 
-        private static long AddDelayCount = 0;
+        private static long mAddDelayCount = 0;
+
+        private static SchedulerCallback mMainThreadRunCallback = null;
 
         //关闭定时器
         public static void Stop(string name)
@@ -22,14 +24,14 @@ namespace Achonor
                 return;
             }
             SchedulerData scheduler;
-            if (schedulers.TryGetValue(name, out scheduler))
+            if (mSchedulers.TryGetValue(name, out scheduler))
             {
                 if (null != scheduler.handle)
                 {
                     Instance.StopCoroutine(scheduler.handle);
                 }
                 //移除
-                schedulers.Remove(name);
+                mSchedulers.Remove(name);
             }
         }
 
@@ -52,7 +54,7 @@ namespace Achonor
                 Debug.LogError("The name is illegal");
                 return null;
             }
-            if (schedulers.ContainsKey(name))
+            if (mSchedulers.ContainsKey(name))
             {
                 //关闭同名定时器
                 Stop(name);
@@ -61,12 +63,12 @@ namespace Achonor
             scheduler.handle = scheduler.RunFunction();
             Instance.StartCoroutine(scheduler.handle);
             //保存
-            schedulers.Add(name, scheduler);
+            mSchedulers.Add(name, scheduler);
             return scheduler;
         }
 
         public static void AddDelay(float delay, Action callback) {
-            string name = string.Format("Scheduler.AddDelay_{0}", AddDelayCount++);
+            string name = string.Format("Scheduler.AddDelay_{0}", mAddDelayCount++);
             CreateScheduler(name, delay, 1, 0, () => {
                 try {
                     callback?.Invoke();
@@ -74,6 +76,17 @@ namespace Achonor
                     Debug.LogError(e);
                 };
             });
+        }
+
+        public static void MainThreadRun(SchedulerCallback callback) {
+            mMainThreadRunCallback += callback;
+        }
+
+        private void Update() {
+            if (null != mMainThreadRunCallback) {
+                mMainThreadRunCallback.Invoke();
+            }
+            mMainThreadRunCallback = null;
         }
     }
     public class SchedulerData
